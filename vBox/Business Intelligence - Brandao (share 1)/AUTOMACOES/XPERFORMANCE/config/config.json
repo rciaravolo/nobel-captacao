@@ -1,0 +1,16 @@
+{
+  "portal_url": "https://hub.xpi.com.br/",
+  "batch_size": 50,
+  "download_timeout": 300,
+  "retry_attempts": 3,
+  "delay_between_batches": 5,
+  "headless_mode": false,
+  "keep_zip_files": false,
+  "organize_by_month": true,
+  "download_dir": "downloads/zips",
+  "extract_dir": "downloads/pdfs",
+  "checkpoint_file": "checkpoints/download_state.json",
+  "log_dir": "logs",
+  "max_wait_download": 60,
+  "page_load_timeout": 30
+}
