@@ -19,8 +19,7 @@ class XPIAuthenticator:
         "two-factor",
         "verification",
         "verify",
-        "advisor.xpi.com.br",
-        "dasbhoard",
+        "advisor.xpi.com.br"
     ]
 
     _PORTAL_AUTHENTICATED_INDICATOR = "hub.xpi.com.br/new/dashboard"
@@ -56,13 +55,14 @@ class XPIAuthenticator:
             self.logger.info("=" * 60)
 
             start_time = time.time()
-            check_interval = 2
+            check_interval = 1
 
             while time.time() - start_time < timeout:
                 elapsed = int(time.time() - start_time)
                 remaining = timeout - elapsed
 
                 if elapsed % 30 == 0 and elapsed > 0:
+                    self.logger.info(f"[auth] URL atual: {self.page.url}")
                     self.logger.info(f"Tempo restante: {remaining // 60}min {remaining % 60}s")
 
                 if self._verify_authentication():
@@ -94,7 +94,11 @@ class XPIAuthenticator:
                 if indicator in current_url:
                     return False
 
-            return self._PORTAL_AUTHENTICATED_INDICATOR in current_url
+            if self._PORTAL_AUTHENTICATED_INDICATOR in current_url:
+                self.logger.info(f"[auth] Dashboard detectado: {self.page.url}")
+                return True
+
+            return False
 
         except Exception:
             return False

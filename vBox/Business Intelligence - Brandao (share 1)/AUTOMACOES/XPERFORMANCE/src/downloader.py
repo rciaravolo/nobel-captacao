@@ -77,9 +77,9 @@ class XPerformanceDownloader:
             self.logger.info(f"[select_assessor] digitou '{assessor_name}' no soma-search")
             time.sleep(2)
 
-            # Passo 3: aguarda e clica no li que contém o código do assessor em soma-caption
-            # A lista suspensa usa li com soma-caption dentro
-            li_locator = self.page.locator(f"li:has(soma-caption:text-matches('{assessor_name}', 'i'))").first
+            # Passo 3: aguarda o primeiro li aparecer na ul e clica
+            # Não depende de classe — usa ul > li simples (primeiro resultado)
+            li_locator = self.page.locator("ul > li").first
             li_locator.wait_for(state="visible", timeout=timeout * 1000)
             texto = li_locator.inner_text()
             li_locator.click()
@@ -127,7 +127,7 @@ class XPerformanceDownloader:
         Clica no botão de próxima página.
         """
         try:
-            next_btn = self.page.locator("button:has(path[d='M9 18L15 12L9 6'])").first
+            next_btn = self.page.locator("button.button-pagination-next").first
             next_btn.wait_for(state="visible", timeout=timeout * 1000)
             next_btn.click()
             time.sleep(2)
@@ -166,21 +166,39 @@ class XPerformanceDownloader:
 
     def click_solicitar_download(self, timeout: int = 15) -> bool:
         """
-        Clica no botão 'Solicitar download' que aparece após seleção.
+        Fluxo de download conforme documentação:
+        1. 1º clique em 'Download Pdf' — abre modal
+        2. 2º clique em 'Download Pdf' — confirma download em segundo plano
+        3. Clique em 'Fechar' — fecha modal e volta à lista
         """
         try:
+            # 1º clique — abre o modal
             btn = self.page.locator("button[aria-label='Download Pdf']").first
             btn.wait_for(state="visible", timeout=timeout * 1000)
             btn.click()
-            self.logger.info("✓ 'Solicitar download' clicado")
+            self.logger.info("✓ 1º clique em 'Download Pdf'")
             time.sleep(2)
+
+            # 2º clique — confirma o download em segundo plano
+            btn2 = self.page.locator("button[aria-label='Download Pdf']").first
+            btn2.wait_for(state="visible", timeout=timeout * 1000)
+            btn2.click()
+            self.logger.info("✓ 2º clique em 'Download Pdf' (confirma)")
+            time.sleep(2)
+
+            # Clica em Fechar (soma-button com shadow DOM) para voltar à lista
+            fechar = self.page.locator("soma-button[aria-label='Fechar'] >>> button").first
+            fechar.wait_for(state="visible", timeout=timeout * 1000)
+            fechar.click()
+            self.logger.info("✓ Modal fechado")
+            time.sleep(1.5)
             return True
 
         except PlaywrightTimeoutError:
-            self.logger.error("Botão 'Solicitar download' não apareceu")
+            self.logger.error("Botão 'Download Pdf' ou 'Fechar' não apareceu")
             return False
         except Exception as e:
-            self.logger.error(f"Erro ao clicar em 'Solicitar download': {e}")
+            self.logger.error(f"Erro ao solicitar download: {e}")
             return False
 
     def wait_for_zip_download(self, files_before: set, timeout: int = 300) -> Optional[str]:
