@@ -1,12 +1,21 @@
 import { AllocationInput, AllocationResult, Scenario } from '@/types/portfolio';
 import { SupabaseAllocationService } from './supabase-allocation';
+import { defaultScenarios } from '@/data/scenarios';
 
 export class AllocationService {
   private static scenarios: Scenario[] | null = null;
 
   static async getScenarios(): Promise<Scenario[]> {
     if (!this.scenarios) {
-      this.scenarios = await SupabaseAllocationService.buildScenariosFromSupabase();
+      try {
+        const supabaseScenarios = await SupabaseAllocationService.buildScenariosFromSupabase();
+        // Use Supabase data only if subclasses were actually loaded
+        const hasData = supabaseScenarios.some(s => s.subclasses.length > 0);
+        this.scenarios = hasData ? supabaseScenarios : defaultScenarios;
+      } catch (error) {
+        console.warn('Supabase unavailable, using default scenarios:', error);
+        this.scenarios = defaultScenarios;
+      }
     }
     return this.scenarios;
   }
@@ -18,21 +27,22 @@ export class AllocationService {
 
   static getFixedStructure(): { classe: string; subclass: string }[] {
     return [
-      { classe: 'Renda Fixa', subclass: 'Renda Fixa Pós-fixada' },
-      { classe: 'Renda Fixa', subclass: 'Renda Fixa Pré-fixada' },
-      { classe: 'Renda Fixa', subclass: 'Renda Fixa Inflação' },
-      { classe: 'Ações', subclass: 'Ações Brasil' },
-      { classe: 'Ações', subclass: 'Ações Internacional' },
-      { classe: 'Imobiliário', subclass: 'REITs' },
-      { classe: 'Commodities', subclass: 'Commodities' },
-      { classe: 'Criptomoedas', subclass: 'Criptomoedas' },
+      { classe: 'RENDA FIXA BRASIL', subclass: 'Pós-fixado' },
+      { classe: 'RENDA FIXA BRASIL', subclass: 'Inflação' },
+      { classe: 'RENDA FIXA BRASIL', subclass: 'Prefixado' },
+      { classe: 'MULTIMERCADOS', subclass: '-' },
+      { classe: 'RENDA VARIÁVEL BRASIL', subclass: '-' },
+      { classe: 'FUNDOS LISTADOS', subclass: '-' },
+      { classe: 'ALTERNATIVOS', subclass: '-' },
+      { classe: 'GLOBAL', subclass: 'Renda Fixa' },
+      { classe: 'GLOBAL', subclass: 'Renda Variável' }
     ];
   }
 
   static async allocate(input: AllocationInput): Promise<AllocationResult[]> {
     const scenarios = await this.getScenarios();
     const scenario = scenarios.find(s => s.id === input.perfil);
-    
+
     if (!scenario) {
       throw new Error(`Perfil não encontrado: ${input.perfil}`);
     }
@@ -44,9 +54,32 @@ export class AllocationService {
       });
     }
 
-    // Get fixed structure
+    // Use dynamic structure directly from Supabase scenario data
+    if (scenario.subclasses.length > 0) {
+      return scenario.subclasses.map(subclass => {
+        // Parse "CLASSE - SUBCLASSE" key back into parts
+        const dashIndex = subclass.name.lastIndexOf(' - ');
+        let classe: string;
+        let sub: string;
+        if (dashIndex !== -1) {
+          classe = subclass.name.substring(0, dashIndex);
+          sub = subclass.name.substring(dashIndex + 3);
+        } else {
+          classe = subclass.name;
+          sub = '-';
+        }
+        return {
+          classe,
+          subclass: sub,
+          percentage: subclass.weight * 100,
+          value: input.valor_captado * subclass.weight
+        };
+      });
+    }
+
+    // Fallback to fixed structure if no Supabase data
     const fixedStructure = this.getFixedStructure();
-    
+
     // Create a map of scenario weights for quick lookup
     const scenarioWeights = new Map<string, number>();
     scenario.subclasses.forEach(subclass => {
@@ -57,7 +90,7 @@ export class AllocationService {
     return fixedStructure.map(item => {
       // Try to find matching weight from scenario
       let weight = 0;
-      
+
       // Check for exact match with full name format
       const fullNameKey = item.subclass === '-' ? item.classe : `${item.classe} - ${item.subclass}`;
       if (scenarioWeights.has(fullNameKey)) {
@@ -67,7 +100,7 @@ export class AllocationService {
       else if (item.subclass === '-' && scenarioWeights.has(item.classe)) {
         weight = scenarioWeights.get(item.classe) || 0;
       }
-      
+
       return {
         classe: item.classe,
         subclass: item.subclass,

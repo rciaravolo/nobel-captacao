@@ -1,4 +1,11 @@
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { AllocationResult } from '@/types/portfolio';
+import { useEffect, useState } from 'react';
+import { RecommendationsService, RecommendedProduct } from '@/services/recommendations';
+import { SupabaseAllocationService } from '@/services/supabase-allocation';
+import { ChevronDown, ChevronUp } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface AllocationResultsProps {
   results: AllocationResult[];
@@ -6,163 +13,186 @@ interface AllocationResultsProps {
   scenario: string;
 }
 
-const classColors: Record<string, string> = {
-  'Renda Fixa':    'hsl(42 78% 52%)',
-  'Ações':         'hsl(152 45% 42%)',
-  'Imobiliário':   'hsl(200 70% 52%)',
-  'Commodities':   'hsl(30 85% 52%)',
-  'Criptomoedas':  'hsl(260 70% 62%)',
-};
-
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-    minimumFractionDigits: 2,
-  }).format(value);
-
 export const AllocationResults = ({ results, totalValue, scenario }: AllocationResultsProps) => {
-  const activeResults = results.filter(r => r.percentage > 0);
-  const zeroResults   = results.filter(r => r.percentage === 0);
+  const isMobile = useIsMobile();
+  const [recommendations, setRecommendations] = useState<Record<string, RecommendedProduct[]>>({});
+  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
+
+  const maxPercentage = Math.max(...results.map(r => r.percentage));
+
+  useEffect(() => {
+    const load = async () => {
+      const profileMap: Record<string, string> = {
+        'Conservadora': 'conservative',
+        'Moderada': 'moderate',
+        'Sofisticada': 'sophisticated'
+      };
+      const profile = profileMap[scenario] || 'moderate';
+      const monthYear = await SupabaseAllocationService.getCurrentMonth();
+      const map: Record<string, RecommendedProduct[]> = {};
+
+      for (const result of results) {
+        const key = `${result.classe}-${result.subclass}`;
+        const recs = await RecommendationsService.getRecommendationsForAllocation(
+          profile, result.classe, result.subclass, monthYear
+        );
+        if (recs.length > 0) map[key] = recs;
+      }
+      setRecommendations(map);
+    };
+    load();
+  }, [results, scenario]);
+
+  const toggleRow = (i: number) => {
+    const next = new Set(expandedRows);
+    next.has(i) ? next.delete(i) : next.add(i);
+    setExpandedRows(next);
+  };
+
+  const fmt = (v: number) =>
+    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 }).format(v);
+
+  const fmtCompact = (v: number) =>
+    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(v);
+
+  const label = (r: AllocationResult) =>
+    r.subclass && r.subclass !== '-' ? r.subclass : r.classe;
 
   return (
-    <div className="vault-card rounded-lg overflow-hidden animate-fade-up animate-delay-200">
-      {/* Header */}
-      <div className="px-8 py-6 border-b border-border/50 flex items-center justify-between">
-        <div>
-          <p className="label-caps mb-1">Resultado</p>
-          <h3
-            className="text-xl font-light"
-            style={{ fontFamily: "'Cormorant Garamond', serif", color: 'hsl(36 40% 92%)' }}
-          >
+    <Card className="shadow-card overflow-hidden">
+      <CardHeader className="pb-4 border-b border-border">
+        <div className="flex flex-col items-center gap-2">
+          <CardTitle className="text-xl font-semibold tracking-tight text-foreground">
             Alocação de Portfólio
-          </h3>
+          </CardTitle>
+          <span className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
+            Perfil {scenario}
+          </span>
         </div>
-        <div
-          className="px-3 py-1 rounded text-xs font-medium tracking-wide uppercase"
-          style={{
-            background: 'hsl(42 78% 52% / 0.1)',
-            border: '1px solid hsl(42 78% 52% / 0.25)',
-            color: 'hsl(42 78% 52%)',
-          }}
-        >
-          {scenario}
-        </div>
-      </div>
+      </CardHeader>
 
-      {/* Table */}
-      <div className="px-8 py-2">
+      <CardContent className="px-0 pb-0">
+
         {/* Column headers */}
-        <div className="grid grid-cols-12 gap-4 py-3 border-b border-border/30">
-          <span className="col-span-4 label-caps">Classe</span>
-          <span className="col-span-4 label-caps">Subclasse</span>
-          <span className="col-span-2 label-caps text-right">%</span>
-          <span className="col-span-2 label-caps text-right">Valor</span>
+        <div className="grid grid-cols-[1fr_120px] px-6 py-2.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground border-b border-border/60">
+          <span>Classe de Ativo</span>
+          <span className="text-right">Alocação</span>
         </div>
 
-        {/* Active rows */}
-        {activeResults.map((result, i) => {
-          const color = classColors[result.classe] ?? 'hsl(42 78% 52%)';
-          const barWidth = Math.min(result.percentage, 100);
+        {/* Rows */}
+        <div className="divide-y divide-border/40">
+          {results.map((result, index) => {
+            const key = `${result.classe}-${result.subclass}`;
+            const hasRecs = recommendations[key]?.length > 0;
+            const isExpanded = expandedRows.has(index);
+            const barPct = (result.percentage / maxPercentage) * 100;
 
-          return (
-            <div
-              key={i}
-              className="group grid grid-cols-12 gap-4 py-4 border-b border-border/20 last:border-b-0 hover:bg-white/[0.02] transition-colors duration-150"
-            >
-              {/* Classe com dot */}
-              <div className="col-span-4 flex items-center gap-2.5">
-                <span
-                  className="w-2 h-2 rounded-full shrink-0"
-                  style={{ background: color, boxShadow: `0 0 6px ${color}60` }}
-                />
-                <span className="text-sm font-medium text-foreground truncate">{result.classe}</span>
-              </div>
+            return (
+              <div key={index}>
+                <div className="group grid grid-cols-[1fr_120px] items-center gap-4 px-6 py-4 hover:bg-muted/25 transition-colors">
 
-              {/* Subclasse */}
-              <div className="col-span-4 flex items-center">
-                <span className="text-sm text-muted-foreground truncate">{result.subclass}</span>
-              </div>
+                  {/* Left: name + bar */}
+                  <div className="flex flex-col gap-2 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-[14px] text-foreground leading-none">
+                        {label(result)}
+                      </span>
+                      {result.subclass && result.subclass !== '-' && (
+                        <span className="text-[11px] text-muted-foreground hidden sm:inline">
+                          {result.classe}
+                        </span>
+                      )}
+                      {hasRecs && (
+                        <button
+                          onClick={() => toggleRow(index)}
+                          className="flex items-center gap-0.5 text-[11px] text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity hover:text-foreground"
+                        >
+                          {isExpanded
+                            ? <ChevronUp className="h-3.5 w-3.5" />
+                            : <ChevronDown className="h-3.5 w-3.5" />}
+                          <span className="hidden sm:inline">
+                            {isExpanded ? 'fechar' : `${recommendations[key].length} produtos`}
+                          </span>
+                        </button>
+                      )}
+                    </div>
 
-              {/* Percentual + barra */}
-              <div className="col-span-2 flex flex-col items-end justify-center gap-1">
-                <span
-                  className="text-sm font-semibold tabular-nums"
-                  style={{ color }}
-                >
-                  {result.percentage.toFixed(1)}%
-                </span>
-                <div className="w-full h-0.5 rounded-full overflow-hidden bg-white/5">
-                  <div
-                    className="h-full rounded-full transition-all duration-700"
-                    style={{ width: `${barWidth}%`, background: color, opacity: 0.7 }}
-                  />
+                    {/* Bar */}
+                    <div className="h-[5px] bg-border/60 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-700 ease-out bg-foreground/70"
+                        style={{ width: `${barPct}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Right: % + value */}
+                  <div className="flex flex-col items-end gap-0.5">
+                    <span className="text-[22px] font-bold tabular-nums text-foreground leading-none">
+                      {result.percentage.toFixed(1).replace('.', ',')}%
+                    </span>
+                    <span className="text-[12px] text-muted-foreground tabular-nums">
+                      {isMobile ? fmtCompact(result.value) : fmt(result.value)}
+                    </span>
+                  </div>
                 </div>
-              </div>
 
-              {/* Valor */}
-              <div className="col-span-2 flex items-center justify-end">
-                <span className="text-sm font-medium text-foreground tabular-nums">
-                  {formatCurrency(result.value)}
-                </span>
+                {/* Expanded products */}
+                {hasRecs && isExpanded && (
+                  <div className="px-6 py-3 bg-muted/30 border-t border-border/40">
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-2">
+                      Produtos recomendados
+                    </p>
+                    <div className="space-y-1.5">
+                      {recommendations[key].map((p, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center justify-between gap-3 bg-card rounded px-3 py-2 border border-border/50 text-sm"
+                        >
+                          <span className="font-medium text-foreground">{p.product_name}</span>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            {p.percentage && (
+                              <span className="font-semibold tabular-nums text-foreground">
+                                {p.percentage.toFixed(1)}%
+                              </span>
+                            )}
+                            {p.expected_return && (
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-border text-muted-foreground">
+                                {p.expected_return}
+                              </Badge>
+                            )}
+                            {p.eligibility && (
+                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                                {p.eligibility}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
 
-        {/* Zero rows — subdued */}
-        {zeroResults.map((result, i) => (
-          <div
-            key={`zero-${i}`}
-            className="grid grid-cols-12 gap-4 py-3 border-b border-border/10 last:border-b-0 opacity-30"
-          >
-            <div className="col-span-4 flex items-center gap-2.5">
-              <span className="w-2 h-2 rounded-full shrink-0 bg-muted-foreground/40" />
-              <span className="text-sm text-muted-foreground truncate">{result.classe}</span>
-            </div>
-            <div className="col-span-4 flex items-center">
-              <span className="text-xs text-muted-foreground truncate">{result.subclass}</span>
-            </div>
-            <div className="col-span-2 text-right">
-              <span className="text-xs text-muted-foreground">—</span>
-            </div>
-            <div className="col-span-2 text-right">
-              <span className="text-xs text-muted-foreground">—</span>
-            </div>
+        {/* Total */}
+        <div className="grid grid-cols-[1fr_120px] items-center gap-4 px-6 py-4 border-t-2 border-border bg-muted/20">
+          <span className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+            Total
+          </span>
+          <div className="flex flex-col items-end gap-0.5">
+            <span className="text-[22px] font-bold tabular-nums text-primary leading-none">
+              100,0%
+            </span>
+            <span className="text-[12px] font-semibold tabular-nums text-primary">
+              {fmt(totalValue)}
+            </span>
           </div>
-        ))}
-      </div>
+        </div>
 
-      {/* Total */}
-      <div
-        className="px-8 py-5 flex items-center justify-between"
-        style={{
-          background: 'hsl(42 78% 52% / 0.04)',
-          borderTop: '1px solid hsl(42 78% 52% / 0.15)',
-        }}
-      >
-        <div className="flex items-center gap-3">
-          <span className="label-caps">Total alocado</span>
-        </div>
-        <div className="flex items-center gap-8">
-          <span
-            className="text-sm font-semibold"
-            style={{ color: 'hsl(42 78% 52%)' }}
-          >
-            100,0%
-          </span>
-          <span
-            className="text-lg font-semibold"
-            style={{
-              fontFamily: "'Cormorant Garamond', serif",
-              color: 'hsl(42 78% 52%)',
-              letterSpacing: '-0.01em',
-            }}
-          >
-            {formatCurrency(totalValue)}
-          </span>
-        </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
