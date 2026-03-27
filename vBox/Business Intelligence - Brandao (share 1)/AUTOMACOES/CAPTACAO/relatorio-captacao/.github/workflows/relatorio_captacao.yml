@@ -69,7 +69,6 @@ jobs:
           PYTHONUTF8: "1"
 
         run: |
-          cd relatorio-captacao
           python main.py
 
       # 5. Salva o log como artefato (disponível por 7 dias no painel do Actions)
