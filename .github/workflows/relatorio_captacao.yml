@@ -48,8 +48,8 @@ jobs:
           CF_API_EMAIL:      ${{ secrets.CF_API_EMAIL }}
           CF_D1_DATABASE_ID: ${{ secrets.CF_D1_DATABASE_ID }}
 
-          # ── Assessores (ainda vem do repo como fallback) ───────
-          ARQUIVO_ASSESSORES: "data/assessor.json"
+          # ── Assessores (arquivo no repo) ───────────────────────
+          ARQUIVO_ASSESSORES: "assessor.json"
 
           # ── Destinatário: padrão = time completo; teste = só você ──
           EMAIL_DESTINATARIO: ${{ inputs.modo_teste && vars.EMAIL_TESTE || '' }}
@@ -77,5 +77,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: logs-relatorio-${{ github.run_id }}
-          path: relatorio-captacao/logs/
+          path: logs/
           retention-days: 7
