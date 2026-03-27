@@ -91,7 +91,7 @@ EMAIL_MODO = _os.environ.get('EMAIL_MODO', 'outlook')
 # ── EMAIL — SMTP (Office 365 ou Gmail) ─────────────────────────────────────
 # Configure via arquivo .env local ou Secrets no GitHub Actions.
 SMTP_HOST        = _os.environ.get('SMTP_HOST',     'smtp.office365.com')
-SMTP_PORT        = int(_os.environ.get('SMTP_PORT', '587'))
+SMTP_PORT        = int(_os.environ.get('SMTP_PORT', '587') or '587')
 SMTP_USER        = _os.environ.get('SMTP_USER',     '')   # ex: relatorio@nobelcapital.com.br
 SMTP_PASSWORD    = _os.environ.get('SMTP_PASSWORD', '')   # senha ou app-password
 SMTP_FROM        = _os.environ.get('SMTP_FROM',     SMTP_USER)
