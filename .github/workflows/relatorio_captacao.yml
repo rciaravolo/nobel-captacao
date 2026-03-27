@@ -1,0 +1,82 @@
+name: Relatório Captação Diário - Nobel Capital
+
+on:
+  # ── Executa automaticamente às 17h BRT (20:00 UTC) de Segunda a Sexta ──
+  schedule:
+    - cron: '0 20 * * 1-5'
+
+  # ── Permite rodar manualmente pelo painel do GitHub Actions ──
+  workflow_dispatch:
+    inputs:
+      modo_teste:
+        description: 'Modo teste (envia só para EMAIL_TESTE, não para o time)'
+        type: boolean
+        default: false
+
+jobs:
+  relatorio:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Faz checkout do repositório (inclui o Excel em data/)
+      - name: Checkout repositório
+        uses: actions/checkout@v4
+
+      # 2. Configura Python 3.11
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      # 3. Instala dependências (sem pywin32, que é Windows-only)
+      - name: Instalar dependências
+        run: |
+          pip install pandas openpyxl numpy matplotlib requests
+
+      # 4. Executa o relatório
+      - name: Executar relatório de captação
+        env:
+          # ── Fonte de dados: Cloudflare D1 ──────────────────────
+          # O Excel não precisa mais estar no repositório — os dados
+          # vêm do D1, atualizado pelo PC local durante o dia.
+          FONTE_DADOS: "d1"
+
+          # ── Credenciais Cloudflare D1 — configure nos Secrets ──
+          CF_ACCOUNT_ID:     ${{ secrets.CF_ACCOUNT_ID }}
+          CF_API_KEY:        ${{ secrets.CF_API_KEY }}
+          CF_API_EMAIL:      ${{ secrets.CF_API_EMAIL }}
+          CF_D1_DATABASE_ID: ${{ secrets.CF_D1_DATABASE_ID }}
+
+          # ── Assessores (ainda vem do repo como fallback) ───────
+          ARQUIVO_ASSESSORES: "data/assessor.json"
+
+          # ── Destinatário: padrão = time completo; teste = só você ──
+          EMAIL_DESTINATARIO: ${{ inputs.modo_teste && vars.EMAIL_TESTE || '' }}
+
+          # ── Modo email: SMTP (sem Outlook) ──
+          EMAIL_MODO: "smtp"
+
+          # ── Credenciais SMTP — configure nos Secrets do GitHub ──
+          # Vá em: Settings > Secrets and variables > Actions > New repository secret
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          SMTP_FROM: ${{ secrets.SMTP_FROM }}
+
+          # ── Força UTF-8 ──
+          PYTHONUTF8: "1"
+
+        run: |
+          cd relatorio-captacao
+          python main.py
+
+      # 5. Salva o log como artefato (disponível por 7 dias no painel do Actions)
+      - name: Salvar logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs-relatorio-${{ github.run_id }}
+          path: relatorio-captacao/logs/
+          retention-days: 7
