@@ -1,0 +1,4 @@
+project_id = "yesdhshukwmpaegkfyzz"
+
+[functions.parse-allocation-materials]
+verify_jwt = false
