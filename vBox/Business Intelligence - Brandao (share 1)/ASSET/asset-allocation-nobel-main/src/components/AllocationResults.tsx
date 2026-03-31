@@ -89,7 +89,10 @@ export const AllocationResults = ({ results, totalValue, scenario }: AllocationR
 
             return (
               <div key={index}>
-                <div className="group grid grid-cols-[1fr_120px] items-center gap-4 px-6 py-4 hover:bg-muted/25 transition-colors">
+                <div
+                  className={`group grid grid-cols-[1fr_120px] items-center gap-4 px-6 py-4 hover:bg-muted/25 transition-colors ${hasRecs ? 'cursor-pointer' : ''}`}
+                  onClick={hasRecs ? () => toggleRow(index) : undefined}
+                >
 
                   {/* Left: name + bar */}
                   <div className="flex flex-col gap-2 min-w-0">
@@ -103,17 +106,14 @@ export const AllocationResults = ({ results, totalValue, scenario }: AllocationR
                         </span>
                       )}
                       {hasRecs && (
-                        <button
-                          onClick={() => toggleRow(index)}
-                          className="flex items-center gap-0.5 text-[11px] text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity hover:text-foreground"
-                        >
+                        <span className="flex items-center gap-0.5 text-[11px] text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
                           {isExpanded
                             ? <ChevronUp className="h-3.5 w-3.5" />
                             : <ChevronDown className="h-3.5 w-3.5" />}
                           <span className="hidden sm:inline">
                             {isExpanded ? 'fechar' : `${recommendations[key].length} produtos`}
                           </span>
-                        </button>
+                        </span>
                       )}
                     </div>
 

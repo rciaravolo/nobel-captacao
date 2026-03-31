@@ -85,31 +85,37 @@ const Index = () => {
       <ProductsAvailabilityDialog />
 
       {/* Header */}
-      <header className="border-b border-border bg-card shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4">
+      <header className="relative border-b border-border/60 bg-card/90 backdrop-blur-sm sticky top-0 z-50">
+        <div className="gold-line absolute inset-x-0 bottom-0" />
+
+        <div className="max-w-7xl mx-auto px-4 py-3">
           {/* Mobile */}
           <div className="flex items-center justify-between md:hidden">
             <MobileMenu />
             <div className="flex-1 flex justify-center">
-              <img src={nobelLogo} alt="Nobel Capital" className="h-10 w-auto" width="173" height="48" />
+              <img src={nobelLogo} alt="Nobel Capital" className="h-9 w-auto" width="173" height="48" />
             </div>
             <div className="w-10" />
           </div>
 
           {/* Desktop */}
-          <div className="hidden md:grid grid-cols-3 items-center">
-            <div className="flex items-center gap-4">
-              <img src={nobelLogo} alt="Nobel Capital" className="h-12 w-auto" width="173" height="48" />
+          <div className="hidden md:grid grid-cols-3 items-center gap-4">
+            <div>
+              <img src={nobelLogo} alt="Nobel Capital" className="h-11 w-auto" width="173" height="48" />
             </div>
-            <div className="text-center">
-              <h1 className="text-2xl font-bold text-foreground">Portfolio Advisor</h1>
-              <p className="text-sm text-muted-foreground">Alocação de carteiras para assessores Nobel Capital</p>
+            <div className="text-center space-y-0.5">
+              <h1 className="font-serif text-[1.7rem] font-light tracking-wide text-foreground leading-none">
+                Portfolio Advisor
+              </h1>
+              <p className="text-[10px] tracking-[0.22em] uppercase text-muted-foreground font-medium">
+                Nobel Capital · Alocação de Carteiras
+              </p>
             </div>
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end items-center gap-2">
               <ThemeToggle />
               <Link to="/materiais">
-                <Button variant="outline" className="gap-2">
-                  <BarChart3 className="w-4 h-4" />
+                <Button variant="outline" size="sm" className="gap-1.5 text-xs h-8 px-3">
+                  <BarChart3 className="w-3.5 h-3.5" />
                   Materiais
                 </Button>
               </Link>
@@ -126,15 +132,18 @@ const Index = () => {
         {results && currentInput && selectedScenario && (
           <div className="space-y-6">
             {/* Resumo do perfil + botões de export */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-1">
+            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 px-1 animate-fade-up">
               <div>
-                <h2 className="text-lg font-bold text-foreground">
-                  Perfil <span className="text-primary">{selectedScenario.name}</span>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground mb-1">
+                  Perfil Selecionado
+                </p>
+                <h2 className="font-serif text-3xl font-light text-foreground leading-none">
+                  {selectedScenario.name}
                 </h2>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground mt-1.5">
                   Retorno esperado: <span className="font-semibold text-success">{selectedScenario.expected_return}</span>
                   {' · '}
-                  Volatilidade alvo: <span className="font-semibold">{selectedScenario.target_vol}%</span>
+                  Volatilidade: <span className="font-semibold">{selectedScenario.target_vol}%</span>
                 </p>
               </div>
 
@@ -168,23 +177,28 @@ const Index = () => {
 
         {/* Empty state */}
         {!results && !loading && (
-          <div className="text-center py-20">
-            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <TrendingUp className="w-8 h-8 text-primary" />
-            </div>
-            <h3 className="text-lg font-semibold mb-2 text-foreground">Configure sua carteira</h3>
-            <p className="text-muted-foreground max-w-sm mx-auto text-sm">
-              Selecione o valor e o perfil de investimento para calcular a alocação ideal.
+          <div className="flex flex-col items-center justify-center py-16 text-center animate-fade-in animate-delay-200">
+            <div className="w-px h-12 gold-line mb-8" style={{ background: 'linear-gradient(to bottom, transparent, hsl(42 78% 52% / 0.4))' }} />
+            <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-muted-foreground mb-3">
+              Preencha os campos acima
             </p>
+            <h3 className="font-serif text-2xl font-light text-foreground mb-2">
+              Configure sua carteira
+            </h3>
+            <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
+              Selecione o perfil e o valor para calcular a alocação ideal e projeção de retornos.
+            </p>
+            <div className="w-px h-12 mt-8" style={{ background: 'linear-gradient(to bottom, hsl(42 78% 52% / 0.4), transparent)' }} />
           </div>
         )}
       </main>
 
-      <footer className="border-t border-border bg-card mt-16">
+      <footer className="relative border-t border-border/60 bg-card/60 mt-16">
+        <div className="gold-line absolute inset-x-0 top-0" />
         <div className="max-w-7xl mx-auto px-4 py-5">
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <p>© 2026 Nobel Capital · Portfolio Advisor</p>
-            <p>Rafael Brandão — Dados & Performance</p>
+          <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+            <p className="tracking-wide">© 2026 Nobel Capital · Portfolio Advisor</p>
+            <p className="tracking-wide">Rafael Brandão — Dados & Performance</p>
           </div>
         </div>
       </footer>
