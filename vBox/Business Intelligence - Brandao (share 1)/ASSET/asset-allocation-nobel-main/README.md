@@ -8,7 +8,7 @@ Ferramenta de alocação de ativos para assessores da Nobel Capital. Desenvolvid
 - **Styling**: Tailwind CSS + shadcn/ui
 - **Charts**: Recharts
 - **Backend/DB**: Supabase
-- **Deploy**: GitHub (`rciaravolo/xperform`, branch `master`)
+- **Deploy**: GitHub (`rciaravolo/asset-allocation-nobel`, branch `master`)
 
 ## Como rodar localmente
 
@@ -32,7 +32,7 @@ Este projeto é mantido localmente com **Claude Code** (CLI da Anthropic).
 claude
 ```
 
-Todas as alterações são versionadas via Git e publicadas no repositório `rciaravolo/xperform`.
+Todas as alterações são versionadas via Git e publicadas no repositório `rciaravolo/asset-allocation-nobel`.
 
 ## Estrutura
 

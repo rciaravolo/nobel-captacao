@@ -9,7 +9,7 @@ Projeto React/TypeScript de alocação de ativos para assessores da Nobel Capita
 - **Routing**: React Router v6
 - **Charts**: Recharts
 - **Backend/DB**: Supabase (tabela `Asset Allocation`)
-- **Deploy**: GitHub → `rciaravolo/xperform` (branch master)
+- **Deploy**: GitHub → `rciaravolo/asset-allocation-nobel` (branch master)
 
 ## Arquitetura
 
@@ -77,7 +77,8 @@ src/
 
 ## Git
 
-- Repositório: `rciaravolo/xperform` (GitHub)
+- Repositório: `rciaravolo/asset-allocation-nobel` (GitHub)
+- Remote: **`nobel-origin`** (NÃO usar `origin` — aponta para repo errado `xperform`)
 - Branch: `master`
 - **Root do git está em `C:/Users/Usuário`** — não dentro do projeto
 - Para commitar:
@@ -85,7 +86,7 @@ src/
   cd "C:/Users/Usuário"
   git add "vBox/Business Intelligence - Brandao (share 1)/ASSET/asset-allocation-nobel-main/<arquivo>"
   git commit -m "..."
-  git push origin master
+  git push nobel-origin master
   ```
 
 ## Comandos Úteis
