@@ -32,6 +32,8 @@ def gerar_html_relatorio(
     rank_cust_pequeno: pd.DataFrame = None,
     data_atualizacao: str = None,
     grafico_captacao_b64: str = '',
+    dados_contas: dict = None,
+    grafico_contas_b64: str = '',
 ) -> str:
     """Gera o HTML completo do relatorio de captacao e custodia."""
     data_str = data_atualizacao if data_atualizacao else datetime.now().strftime('%d/%m/%Y')
@@ -105,6 +107,8 @@ def gerar_html_relatorio(
   </tr>
 
   {_secao_custodia(resumo_cust, rank_cust_times, rank_cust_grande, rank_cust_pequeno, cor1, cor2, data_str)}
+
+  {_secao_contas(dados_contas, grafico_contas_b64, cor1, cor2)}
 
   <!-- RODAPE -->
   <tr>
@@ -292,6 +296,114 @@ def _tabela_assessores_negativo(df: pd.DataFrame, cor1: str, cor2: str) -> str:
   </tr></thead>
   <tbody>{linhas}</tbody>
 </table>"""
+
+
+def _kpi_strip_contas(dados: dict, cor1: str, cor2: str) -> str:
+    """Faixa de KPIs de movimentação de base: Reativações, Habilitações, Evasões, Saldo."""
+    ativ_total = dados.get('ativ_total', 0)
+    hab_total  = dados.get('hab_total', 0)
+    evas_total = dados.get('evas_total', 0)
+    saldo      = dados.get('saldo', 0)
+    ativ_net   = dados.get('ativ_net', 0)
+    hab_tx     = dados.get('hab_tx', 0)
+    razao      = dados.get('razao', 0)
+    seg1_ativ  = dados.get('seg1_ativ', 0)
+    seg1_evas  = dados.get('seg1_evas', 0)
+
+    sinal_saldo = '+' if saldo > 0 else ''
+    saldo_fmt   = f'{sinal_saldo}{saldo}'
+    cor_saldo   = '#c0392b' if saldo < 0 else '#1a6e2e'
+
+    def fmt_net(v):
+        if abs(v) >= 1_000_000:
+            return f'R$ {v / 1_000_000:.1f}M'
+        if abs(v) >= 1_000:
+            return f'R$ {v / 1_000:.0f}k'
+        return f'R$ {v:.0f}'
+
+    return f"""<table width="100%" cellpadding="0" cellspacing="0"
+       style="border-collapse:collapse;border:1px solid #dde3ea;overflow:hidden;">
+  <tr>
+    <td width="25%" style="padding:16px 18px;border-right:1px solid #dde3ea;
+                            vertical-align:top;border-top:3px solid {cor2};text-align:center;">
+      <div style="font-size:8px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;
+                  color:#6B7E90;margin-bottom:7px;">Ativações</div>
+      <div style="font-size:26px;font-weight:700;color:{cor1};line-height:1;">{ativ_total}</div>
+    </td>
+    <td width="25%" style="padding:16px 18px;border-right:1px solid #dde3ea;
+                            vertical-align:top;border-top:3px solid {cor1};text-align:center;">
+      <div style="font-size:8px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;
+                  color:#6B7E90;margin-bottom:7px;">Habilitações</div>
+      <div style="font-size:26px;font-weight:700;color:{cor1};line-height:1;">{hab_total}</div>
+    </td>
+    <td width="25%" style="padding:16px 18px;border-right:1px solid #dde3ea;
+                            vertical-align:top;border-top:3px solid #8B2929;text-align:center;">
+      <div style="font-size:8px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;
+                  color:#6B7E90;margin-bottom:7px;">Evasões</div>
+      <div style="font-size:26px;font-weight:700;color:#8B2929;line-height:1;">{evas_total}</div>
+    </td>
+    <td width="25%" style="padding:16px 18px;vertical-align:top;
+                            border-top:3px solid #8B2929;text-align:center;">
+      <div style="font-size:8px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;
+                  color:#6B7E90;margin-bottom:7px;">Saldo Líquido</div>
+      <div style="font-size:26px;font-weight:700;color:{cor_saldo};line-height:1;margin-bottom:5px;">{saldo_fmt}</div>
+      <div style="font-size:10px;color:#6B7E90;">{seg1_evas} evasões 1MM+ vs <b style="color:#1C2B3A;">{seg1_ativ} entrada</b></div>
+    </td>
+  </tr>
+</table>"""
+
+
+def _secao_contas(dados: dict, grafico_contas_b64: str, cor1: str, cor2: str) -> str:
+    """Seção de Movimentação de Base — KPI strip + gráfico por faixa patrimonial."""
+    if not dados:
+        return ''
+
+    periodo = dados.get('periodo', '')
+    titulo_periodo = f' — {periodo}' if periodo else ''
+
+    kpi_html = _kpi_strip_contas(dados, cor1, cor2)
+
+    grafico_html = ''
+    if grafico_contas_b64:
+        grafico_html = f"""<tr>
+    <td colspan="2" style="padding:12px 32px 4px;">
+      <img src="data:image/png;base64,{grafico_contas_b64}"
+           alt="Ativacao Habilitacao Evasao por Faixa Patrimonial"
+           width="100%" style="display:block;border-radius:6px;border:1px solid #dde3ea;" />
+    </td>
+  </tr>"""
+
+    return f"""
+  <!-- DIVISOR CONTAS -->
+  <tr>
+    <td colspan="2" style="padding:10px 32px 0;">
+      <hr style="border:none;border-top:3px solid {cor2};margin:0;">
+    </td>
+  </tr>
+
+  <!-- TITULO CONTAS -->
+  <tr>
+    <td colspan="2" style="background-color:{cor1};padding:20px 32px;text-align:center;">
+      <h2 style="margin:0 0 6px;color:#ffffff;font-size:20px;font-weight:700;
+                 letter-spacing:0.5px;">MOVIMENTAÇÃO DE BASE</h2>
+      <p style="margin:0 0 4px;color:{cor2};font-size:12px;font-weight:600;">
+        Ativação · Habilitação · Evasão por Faixa Patrimonial
+      </p>
+      <p style="margin:0;color:#9aaab8;font-size:11px;font-weight:400;">
+        {periodo}
+      </p>
+    </td>
+  </tr>
+
+  <!-- KPI STRIP -->
+  <tr>
+    <td colspan="2" style="padding:24px 32px 12px;">
+      {kpi_html}
+    </td>
+  </tr>
+
+  <!-- GRAFICO CONTAS -->
+  {grafico_html}"""
 
 
 def _secao_custodia(
@@ -508,6 +620,8 @@ def enviar_relatorio(
     rank_cust_pequeno: pd.DataFrame = None,
     data_atualizacao: str = None,
     grafico_captacao_b64: str = '',
+    dados_contas: dict = None,
+    grafico_contas_b64: str = '',
 ) -> None:
     """Gera o HTML e envia via Outlook (local) ou SMTP (nuvem)."""
     html = gerar_html_relatorio(
@@ -515,6 +629,8 @@ def enviar_relatorio(
         resumo_cust, rank_cust_times, rank_cust_grande, rank_cust_pequeno,
         data_atualizacao=data_atualizacao,
         grafico_captacao_b64=grafico_captacao_b64,
+        dados_contas=dados_contas,
+        grafico_contas_b64=grafico_contas_b64,
     )
 
     if config.MODO_TESTE_EMAIL:
