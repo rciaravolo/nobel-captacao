@@ -66,6 +66,17 @@ TEMA_COR_PRIMARIA   = '#1E3A5F'   # Azul escuro Nobel
 TEMA_COR_SECUNDARIA = '#C9A84C'   # Dourado
 FONTE_RELATORIO     = 'Arial, sans-serif'
 
+# ── POSTGRESQL (VPS) ─────────────────────────────────────────
+# Usado tanto pelo push local (PC→VPS) quanto pela leitura no container VPS.
+# PC (push): PG_HOST=82.25.74.187, PG_PORT=5433, PG_SSLMODE=require
+# Container Docker (leitura): PG_HOST=postgres_nobel_v2, PG_PORT=5432, PG_SSLMODE=disable
+PG_HOST     = _os.environ.get('PG_HOST',     '82.25.74.187')
+PG_PORT     = int(_os.environ.get('PG_PORT', '5433') or '5433')
+PG_DB       = _os.environ.get('PG_DB',       'nobel_db')
+PG_USER     = _os.environ.get('PG_USER',     'app_user')
+PG_PASSWORD = _os.environ.get('PG_PASSWORD', '')
+PG_SSLMODE  = _os.environ.get('PG_SSLMODE',  'require')
+
 # ── CLOUDFLARE D1 ────────────────────────────────────────────
 # Credenciais via variáveis de ambiente ou arquivo .env local.
 # Para criar o banco: painel Cloudflare > Workers & Pages > D1 > Create database
@@ -74,8 +85,9 @@ CF_API_KEY        = _os.environ.get('CF_API_KEY', '')
 CF_API_EMAIL      = _os.environ.get('CF_API_EMAIL', '')
 CF_D1_DATABASE_ID = _os.environ.get('CF_D1_DATABASE_ID', '')
 
-# 'excel' → lê dos arquivos Excel locais (padrão, modo local)
-# 'd1'    → lê do Cloudflare D1 (modo nuvem — GitHub Actions)
+# 'excel'    → lê dos arquivos Excel locais (padrão, modo local)
+# 'd1'       → lê do Cloudflare D1 (modo nuvem — GitHub Actions)
+# 'postgres' → lê do PostgreSQL VPS (modo container Docker / VPS)
 FONTE_DADOS = _os.environ.get('FONTE_DADOS', 'excel')
 
 # ── CONTROLE ─────────────────────────────────────────────────

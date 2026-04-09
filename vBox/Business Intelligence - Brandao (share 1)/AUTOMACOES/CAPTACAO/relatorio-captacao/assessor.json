@@ -40,5 +40,7 @@
   {"id_assessor": "A65646", "nome_assessor": "Marcelo Gaspar", "equipe": "PRIVATE", "status": "Ativo", "mail_assessor": "marcelo.gaspar@nobelcapital.com.br"},
   {"id_assessor": "A65648", "nome_assessor": "Eduardo Puschiavo", "equipe": "PRIVATE", "status": "Ativo", "mail_assessor": "ep@nobelcapital.com.br"},
   {"id_assessor": "A23591", "nome_assessor": "Marcos Pereira", "equipe": "SMART-Unique", "status": "Ativo", "mail_assessor": "marcos.pereira@nobelcapital.com.br"},
-  {"id_assessor": "DM 16", "nome_assessor": "Israel Santos", "equipe": "SMART-Alfa", "status": "Ativo", "mail_assessor": "israel.santos@nobelcapital.com.br"}
+  {"id_assessor": "DM 16", "nome_assessor": "Israel Santos", "equipe": "SMART-Alfa", "status": "Ativo", "mail_assessor": "israel.santos@nobelcapital.com.br"},
+  {"id_assessor": "A96628", "nome_assessor": "Rafael Paschoal", "equipe": "SMART-Alfa", "status": "Ativo", "mail_assessor": "rafael.paschoal@nobelcapital.com.br"}
 ]
+
