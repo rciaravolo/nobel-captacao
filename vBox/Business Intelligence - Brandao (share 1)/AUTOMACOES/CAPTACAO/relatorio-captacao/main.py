@@ -30,8 +30,7 @@ from ranking_generator import (
     gerar_ranking_custodia_assessores,
 )
 from email_sender import enviar_relatorio
-from chart_generator import preparar_dados_diarios, gerar_grafico_captacao, gerar_grafico_contas
-from contas_etl import carregar_dados_contas, FAIXAS_LABEL as CONTAS_FAIXAS_LABEL
+from chart_generator import preparar_dados_diarios, gerar_grafico_captacao
 
 
 def main():
@@ -66,36 +65,19 @@ def main():
         df_diario = preparar_dados_diarios(df_escritorio)
         grafico_captacao_b64 = gerar_grafico_captacao(df_diario)
 
-        # 5️⃣  Dados de movimentação de base (Ativação / Habilitação / Evasão)
-        logger.info("Carregando dados de contas (ativacao/habilitacao/evasao)...")
-        dados_contas = carregar_dados_contas()
-        grafico_contas_b64 = ''
-        if dados_contas:
-            grafico_contas_b64 = gerar_grafico_contas(
-                dados_contas['chart_ativ'],
-                dados_contas['chart_hab'],
-                dados_contas['chart_evas'],
-                CONTAS_FAIXAS_LABEL,
-                dados_contas['periodo'],
-            )
-        else:
-            logger.warning("Dados de contas não disponíveis — seção será omitida do relatório.")
-
-        # 6️⃣  ETL e rankings de custodia
+        # 5️⃣  ETL e rankings de custodia
         df_cust             = executar_etl_custodia(assessores_ativos)
         df_cust_escritorio  = executar_etl_custodia_escritorio()
         resumo_cust         = calcular_resumo_custodia(df_cust, df_cust_escritorio)
         rank_cust_times     = gerar_ranking_custodia_times(df_cust, df_cust_escritorio)
         rank_cust_grande, rank_cust_pequeno = gerar_ranking_custodia_assessores(df_cust)
 
-        # 7️⃣  E-mail — Geração do HTML + Envio
+        # 6️⃣  E-mail — Geração do HTML + Envio
         enviar_relatorio(
             resumo, rank_times, rank_positivos, rank_negativos,
             resumo_cust, rank_cust_times, rank_cust_grande, rank_cust_pequeno,
             data_atualizacao=data_atualizacao,
             grafico_captacao_b64=grafico_captacao_b64,
-            dados_contas=dados_contas,
-            grafico_contas_b64=grafico_contas_b64,
         )
 
 
