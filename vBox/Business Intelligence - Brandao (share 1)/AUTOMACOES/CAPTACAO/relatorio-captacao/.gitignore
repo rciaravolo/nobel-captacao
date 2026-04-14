@@ -23,3 +23,6 @@ env/
 .vscode/
 .idea/
 *.swp
+
+# Previews gerados (output temporário)
+preview_*.html
