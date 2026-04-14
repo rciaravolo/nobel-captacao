@@ -1,0 +1,2 @@
+# Relatório de captação — 20:00 UTC (17:00 BRT), segunda a sexta
+0 20 * * 1-5 root cd /app && python main.py >> /app/logs/cron.log 2>&1
