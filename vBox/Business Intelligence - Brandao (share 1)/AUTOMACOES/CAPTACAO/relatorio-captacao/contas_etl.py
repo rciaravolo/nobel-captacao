@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 # Diretório padrão das planilhas — pode ser sobrescrito via variável de ambiente CONTAS_DIR
 _CONTAS_DIR = os.environ.get(
     'CONTAS_DIR',
-    r'C:\Users\Usuário\vBox\ONE PAGE\TESTE',
+    r'C:\Users\Usuário\vBox\ONE PAGE\3. DIARIO DE BASE',
 )
 
 FAIXAS_ORD   = ["Até 300k", "300k - 1MM", "1MM - 10MM"]
