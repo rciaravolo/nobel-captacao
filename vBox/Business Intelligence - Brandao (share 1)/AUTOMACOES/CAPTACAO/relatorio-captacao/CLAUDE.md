@@ -56,11 +56,12 @@ CAMINHO_BASE = r'C:\Users\Usuário\vBox\ONE PAGE'
 ### Movimentação de Contas (contas_etl.py)
 
 ```python
-_CONTAS_DIR = r'C:\Users\Usuário\vBox\ONE PAGE\3. DIARIO DE BASE'
+_CONTAS_DIR = r'C:\Users\Usuário\vBox\ONE PAGE\TESTE'
 ```
 
-> **ATENÇÃO:** O diretório correto é `3. DIARIO DE BASE`. A pasta `TESTE` (antiga) **não** deve ser usada.
-> Arquivos necessários: `ativacao.xlsx`, `evasao.xlsx`, `habilitacao.xlsx`, `Relatório Positivador.xlsx`
+> ⚠️ **ATENÇÃO — NÃO ALTERAR ESTE CAMINHO:** O diretório correto é `ONE PAGE\TESTE`.
+> A pasta `3. DIARIO DE BASE` **não deve ser usada** aqui — houve tentativas de "correção" que quebraram o pipeline.
+> Arquivos necessários dentro de `TESTE\`: `ativacao.xlsx`, `evasao.xlsx`, `habilitacao.xlsx`, `Relatório Positivador.xlsx`
 
 ### Assessores
 
@@ -137,7 +138,7 @@ Limite custódia: `>=50MM` (grandes) vs `<50MM` (pequenos)
 
 ```env
 CAMINHO_BASE         # Raiz do vBox ONE PAGE (default local)
-CONTAS_DIR           # Diretório com planilhas de contas (default: ONE PAGE\3. DIARIO DE BASE)
+CONTAS_DIR           # Diretório com planilhas de contas (default: ONE PAGE\TESTE) ← NÃO MUDAR
 FONTE_DADOS          # excel | d1 | postgres
 EMAIL_MODO           # outlook | smtp
 EMAIL_DESTINATARIO   # Override do destinatário (modo teste)
@@ -159,7 +160,7 @@ SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASSWORD / SMTP_FROM
 
 | Decisão | Motivo |
 |---------|--------|
-| `_CONTAS_DIR` → `ONE PAGE\3. DIARIO DE BASE` | Pasta TESTE era antiga/desatualizada |
+| `_CONTAS_DIR` → `ONE PAGE\TESTE` | Esta é a pasta correta com os arquivos atualizados de contas |
 | `assessor.json` dentro do repo (`relatorio-captacao/`) | Antes apontava para pasta pai incorreta |
 | GitHub Actions com FONTE_DADOS=d1 | Não depende de o PC estar ligado às 17h |
 | SMTP_PORT tolerante a string vazia | Secrets do GitHub Actions podem retornar vazio |
