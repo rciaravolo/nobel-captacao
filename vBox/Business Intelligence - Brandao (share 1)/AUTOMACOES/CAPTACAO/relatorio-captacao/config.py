@@ -40,7 +40,7 @@ CUST_LIMITE_MI  = 50_000_000          # separador >=50mi vs <50mi
 # ── ASSESSORES ATIVOS ────────────────────────────────────
 ARQUIVO_ASSESSORES = _os.environ.get(
     'ARQUIVO_ASSESSORES',
-    r'C:\Users\Usuário\vBox\Business Intelligence - Brandao (share 1)\AUTOMACOES\CAPTACAO\assessor.json'
+    r'C:\Users\Usuário\vBox\Business Intelligence - Brandao (share 1)\AUTOMACOES\CAPTACAO\relatorio-captacao\assessor.json'
 )
 
 # ── REGRAS DE NEGÓCIO ─────────────────────────────────────────
