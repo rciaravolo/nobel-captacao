@@ -1,0 +1,29 @@
+name = "reembolsos-api"
+main = "src/index.ts"
+compatibility_date = "2024-07-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Variaveis de ambiente (valores sensiveis: definir via wrangler secret put)
+[vars]
+FRONTEND_URL = "https://reembolsos.pages.dev"
+# JWT_SECRET      -> wrangler secret put JWT_SECRET
+# RESEND_API_KEY  -> wrangler secret put RESEND_API_KEY
+# FINANCE_EMAIL   -> wrangler secret put FINANCE_EMAIL
+
+# Banco de dados D1
+[[d1_databases]]
+binding = "DB"
+database_name = "reembolsos"
+database_id = "PREENCHER_APOS_CRIAR_VIA_WRANGLER"
+# Criar com: wrangler d1 create reembolsos
+
+# Armazenamento R2
+[[r2_buckets]]
+binding = "ATTACHMENTS"
+bucket_name = "reembolsos-anexos"
+# Criar com: wrangler r2 bucket create reembolsos-anexos
+
+# Ambiente de preview/desenvolvimento
+[env.preview]
+[env.preview.vars]
+FRONTEND_URL = "http://localhost:8788"

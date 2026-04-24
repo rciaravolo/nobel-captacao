@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nova Solicitação — Reembolsos Nobel Capital</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <a class="navbar-brand" href="form.html">
+    Nobel Capital <span>Reembolsos</span>
+  </a>
+  <ul class="navbar-nav">
+    <li><a href="form.html" class="active">Nova Solicitação</a></li>
+    <li><a href="minhas-solicitacoes.html">Minhas Solicitações</a></li>
+  </ul>
+  <div class="navbar-user">
+    <div class="navbar-user-info">
+      <div class="navbar-user-name" id="navbar-user-name">—</div>
+      <div class="navbar-user-role" id="navbar-user-role">—</div>
+    </div>
+    <button class="btn-logout" id="btn-logout">Sair</button>
+  </div>
+</nav>
+
+<div class="container-sm">
+  <div class="page-header">
+    <h1 class="page-title">Nova Solicitação de Reembolso</h1>
+    <p class="page-subtitle">Preencha todos os campos e anexe o comprovante (nota fiscal ou recibo).</p>
+  </div>
+
+  <div id="form-alert" class="alert"></div>
+
+  <div class="card">
+    <div class="card-body">
+      <form id="reimbursement-form" novalidate>
+
+        <div class="form-grid-2">
+          <!-- Data da despesa -->
+          <div class="form-group">
+            <label class="form-label" for="expense_date">
+              Data da despesa <span class="required">*</span>
+            </label>
+            <input
+              type="date"
+              id="expense_date"
+              name="expense_date"
+              class="form-control"
+              required
+            >
+          </div>
+
+          <!-- Valor -->
+          <div class="form-group">
+            <label class="form-label" for="amount">
+              Valor (R$) <span class="required">*</span>
+            </label>
+            <input
+              type="number"
+              id="amount"
+              name="amount"
+              class="form-control"
+              placeholder="0,00"
+              min="0.01"
+              step="0.01"
+              required
+            >
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <!-- Categoria -->
+          <div class="form-group">
+            <label class="form-label" for="category">
+              Categoria <span class="required">*</span>
+            </label>
+            <select id="category" name="category" class="form-control" required>
+              <option value="">Selecione...</option>
+              <option value="Transporte">Transporte</option>
+              <option value="Alimentação">Alimentação</option>
+              <option value="Hospedagem">Hospedagem</option>
+              <option value="Material">Material</option>
+              <option value="Outros">Outros</option>
+            </select>
+          </div>
+
+          <!-- Centro de Custo -->
+          <div class="form-group">
+            <label class="form-label" for="cost_center">
+              Centro de custo <span class="required">*</span>
+            </label>
+            <select id="cost_center" name="cost_center" class="form-control" required>
+              <option value="">Selecione...</option>
+              <option value="PRIVATE">PRIVATE</option>
+              <option value="BRAVO">BRAVO</option>
+              <option value="RIO PRETO">RIO PRETO</option>
+              <option value="SMART-GLOBAL">SMART-GLOBAL</option>
+              <option value="SMART-UNIQUE">SMART-UNIQUE</option>
+              <option value="SMART-ALFA">SMART-ALFA</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Descrição -->
+        <div class="form-group">
+          <label class="form-label" for="description">
+            Descrição da despesa <span class="required">*</span>
+          </label>
+          <textarea
+            id="description"
+            name="description"
+            class="form-control"
+            placeholder="Descreva a despesa com detalhes (mínimo 10 caracteres)"
+            rows="3"
+            required
+          ></textarea>
+          <div class="form-hint">Ex.: Uber para reunião com cliente na Av. Paulista em 10/04/2025.</div>
+        </div>
+
+        <!-- Comprovante -->
+        <div class="form-group">
+          <label class="form-label">
+            Comprovante <span class="required">*</span>
+          </label>
+          <div class="upload-zone" id="upload-zone">
+            <input
+              type="file"
+              id="attachment"
+              name="attachment"
+              accept=".pdf,.jpg,.jpeg,.png"
+              required
+            >
+            <div class="upload-text">
+              <span class="upload-icon">📎</span>
+              <strong>Clique para selecionar</strong> ou arraste o arquivo aqui
+            </div>
+            <div class="upload-hint">PDF, JPG ou PNG — máximo 10 MB</div>
+          </div>
+          <div class="upload-preview" id="file-preview">
+            <span class="upload-preview-icon">📄</span>
+            <span class="upload-preview-name" id="preview-name"></span>
+            <button type="button" class="upload-preview-remove" id="btn-remove-file" title="Remover arquivo">✕</button>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:8px">
+          <a href="minhas-solicitacoes.html" class="btn btn-outline">Ver minhas solicitações</a>
+          <button type="submit" id="btn-submit" class="btn btn-primary" style="min-width:160px">
+            Enviar Pedido
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/form.js"></script>
+</body>
+</html>
