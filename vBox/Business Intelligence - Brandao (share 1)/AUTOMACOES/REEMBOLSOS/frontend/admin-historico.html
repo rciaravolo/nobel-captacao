@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Histórico — Reembolsos Nobel Capital</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-initial-status="all">
+
+<!-- Navbar -->
+<nav class="navbar">
+  <a class="navbar-brand" href="admin.html">
+    Nobel Capital <span>Reembolsos · Financeiro</span>
+  </a>
+  <ul class="navbar-nav">
+    <li><a href="admin.html">Painel</a></li>
+    <li><a href="admin-historico.html" class="active">Histórico</a></li>
+    <li><a href="admin-usuarios.html">Usuários</a></li>
+  </ul>
+  <div class="navbar-user">
+    <div class="navbar-user-info">
+      <div class="navbar-user-name" id="navbar-user-name">—</div>
+      <div class="navbar-user-role" id="navbar-user-role">—</div>
+    </div>
+    <button class="btn-logout" id="btn-logout">Sair</button>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="page-header">
+    <h1 class="page-title">Histórico Completo</h1>
+    <p class="page-subtitle">Todas as solicitações de reembolso com filtros.</p>
+  </div>
+
+  <div id="page-alert" class="alert"></div>
+
+  <!-- Filtros -->
+  <div class="filter-bar">
+    <select id="filter-status">
+      <option value="">Todos os status</option>
+      <option value="pending">Pendentes</option>
+      <option value="approved">Aprovados</option>
+      <option value="rejected">Recusados</option>
+    </select>
+    <input
+      type="text"
+      id="filter-search"
+      placeholder="Buscar por nome, categoria, centro..."
+      style="min-width:240px"
+    >
+  </div>
+
+  <!-- Tabs (all) -->
+  <div class="tab-nav" style="display:none">
+    <button class="tab-btn active" data-status="all">Todos</button>
+  </div>
+
+  <div class="card" style="overflow:hidden">
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Solicitante</th>
+            <th>Data Despesa</th>
+            <th>Valor</th>
+            <th>Categoria</th>
+            <th>Centro de Custo</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="reimbursements-list">
+          <tr><td colspan="7">
+            <div class="loading-overlay">
+              <div class="spinner"></div>
+              <span>Carregando...</span>
+            </div>
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de detalhe (read-only no histórico) -->
+<div class="modal-backdrop" id="detail-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title" id="modal-title">Detalhes do Pedido</h2>
+      <button class="modal-close" id="modal-close">✕</button>
+    </div>
+
+    <div class="modal-body" id="modal-body">
+      <div class="loading-overlay"><div class="spinner"></div></div>
+    </div>
+
+    <div id="modal-alert" class="alert" style="margin:0 24px 0"></div>
+
+    <div id="review-section" style="display:none"></div>
+
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="document.getElementById('modal-close').click()">Fechar</button>
+      <!-- Aprovar/Recusar ficam ocultos no histórico (status já definido) -->
+      <button class="btn btn-danger" id="btn-reject" style="display:none">Recusar</button>
+      <button class="btn btn-success" id="btn-approve" style="display:none">Aprovar</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

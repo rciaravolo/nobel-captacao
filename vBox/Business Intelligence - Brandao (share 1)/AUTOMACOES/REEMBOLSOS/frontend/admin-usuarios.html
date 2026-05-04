@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Usuários — Reembolsos Nobel Capital</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <a class="navbar-brand" href="admin.html">
+    Nobel Capital <span>Reembolsos · Financeiro</span>
+  </a>
+  <ul class="navbar-nav">
+    <li><a href="admin.html">Painel</a></li>
+    <li><a href="admin-historico.html">Histórico</a></li>
+    <li><a href="admin-usuarios.html" class="active">Usuários</a></li>
+  </ul>
+  <div class="navbar-user">
+    <div class="navbar-user-info">
+      <div class="navbar-user-name" id="navbar-user-name">—</div>
+      <div class="navbar-user-role" id="navbar-user-role">—</div>
+    </div>
+    <button class="btn-logout" id="btn-logout">Sair</button>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+    <div>
+      <h1 class="page-title">Gerenciar Usuários</h1>
+      <p class="page-subtitle">Crie e gerencie contas de assessores e do financeiro.</p>
+    </div>
+    <button class="btn btn-primary" id="btn-new-user">+ Novo Usuário</button>
+  </div>
+
+  <div id="page-alert" class="alert"></div>
+
+  <div class="card" style="overflow:hidden">
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Email</th>
+            <th>Perfil</th>
+            <th>Time</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="users-list">
+          <tr><td colspan="6">
+            <div class="loading-overlay">
+              <div class="spinner"></div>
+              <span>Carregando...</span>
+            </div>
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal novo usuário -->
+<div class="modal-backdrop" id="user-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title">Novo Usuário</h2>
+      <button class="modal-close" id="modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="modal-alert" class="alert"></div>
+      <form id="user-form" novalidate>
+        <div class="form-group">
+          <label class="form-label" for="u-name">Nome completo <span class="required">*</span></label>
+          <input type="text" id="u-name" class="form-control" placeholder="João da Silva" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="u-email">Email <span class="required">*</span></label>
+          <input type="email" id="u-email" class="form-control" placeholder="joao@nobelcapital.com.br" required>
+        </div>
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label" for="u-role">Perfil <span class="required">*</span></label>
+            <select id="u-role" class="form-control" required>
+              <option value="assessor">Assessor</option>
+              <option value="financeiro">Financeiro</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="u-team">Time</label>
+            <select id="u-team" class="form-control">
+              <option value="">Sem time</option>
+              <option value="PRIVATE">PRIVATE</option>
+              <option value="BRAVO">BRAVO</option>
+              <option value="RIO PRETO">RIO PRETO</option>
+              <option value="SMART-GLOBAL">SMART-GLOBAL</option>
+              <option value="SMART-UNIQUE">SMART-UNIQUE</option>
+              <option value="SMART-ALFA">SMART-ALFA</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="u-password">Senha inicial <span class="required">*</span></label>
+          <input type="password" id="u-password" class="form-control" placeholder="Mínimo 8 caracteres" required>
+          <div class="form-hint">O usuário poderá trocar a senha depois (em breve).</div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" id="btn-cancel">Cancelar</button>
+      <button class="btn btn-primary" id="btn-save-user">Criar Usuário</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal trocar senha -->
+<div class="modal-backdrop" id="pwd-modal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <h2 class="modal-title">Redefinir Senha</h2>
+      <button class="modal-close" id="pwd-modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="pwd-alert" class="alert"></div>
+      <div class="form-group">
+        <label class="form-label" for="new-password">Nova senha <span class="required">*</span></label>
+        <input type="password" id="new-password" class="form-control" placeholder="Mínimo 8 caracteres">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" id="btn-pwd-cancel">Cancelar</button>
+      <button class="btn btn-primary" id="btn-pwd-save">Salvar Senha</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const user = initNavbar('financeiro');
+  if (!user) return;
+
+  const listEl    = document.getElementById('users-list');
+  const alertEl   = document.getElementById('page-alert');
+  const modal     = document.getElementById('user-modal');
+  const pwdModal  = document.getElementById('pwd-modal');
+  const modalAlert = document.getElementById('modal-alert');
+  const pwdAlert  = document.getElementById('pwd-alert');
+  let editingUserId = null;
+
+  await loadUsers();
+
+  // Abrir modal novo usuário
+  document.getElementById('btn-new-user').addEventListener('click', () => {
+    document.getElementById('user-form').reset();
+    hideAlert(modalAlert);
+    modal.classList.add('open');
+  });
+
+  document.getElementById('modal-close').addEventListener('click', () => modal.classList.remove('open'));
+  document.getElementById('btn-cancel').addEventListener('click', () => modal.classList.remove('open'));
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('open'); });
+
+  document.getElementById('pwd-modal-close').addEventListener('click', () => pwdModal.classList.remove('open'));
+  document.getElementById('btn-pwd-cancel').addEventListener('click', () => pwdModal.classList.remove('open'));
+  pwdModal.addEventListener('click', (e) => { if (e.target === pwdModal) pwdModal.classList.remove('open'); });
+
+  // Criar usuário
+  document.getElementById('btn-save-user').addEventListener('click', async () => {
+    const name     = document.getElementById('u-name').value.trim();
+    const email    = document.getElementById('u-email').value.trim();
+    const role     = document.getElementById('u-role').value;
+    const team     = document.getElementById('u-team').value;
+    const password = document.getElementById('u-password').value;
+
+    if (!name || !email || !password) {
+      showAlert(modalAlert, 'Preencha todos os campos obrigatórios.', 'error');
+      return;
+    }
+
+    const btn = document.getElementById('btn-save-user');
+    btn.disabled = true;
+
+    try {
+      const res = await fetchAPI('/api/users', {
+        method: 'POST',
+        body: JSON.stringify({ name, email, password, role, team: team || undefined }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        showAlert(modalAlert, data.error || 'Erro ao criar usuário.', 'error');
+        return;
+      }
+
+      modal.classList.remove('open');
+      showAlert(alertEl, `Usuário ${name} criado com sucesso.`, 'success');
+      await loadUsers();
+    } catch {
+      showAlert(modalAlert, 'Erro de conexão.', 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // Salvar nova senha
+  document.getElementById('btn-pwd-save').addEventListener('click', async () => {
+    const password = document.getElementById('new-password').value;
+    if (!password || password.length < 8) {
+      showAlert(pwdAlert, 'Senha deve ter ao menos 8 caracteres.', 'error');
+      return;
+    }
+
+    const btn = document.getElementById('btn-pwd-save');
+    btn.disabled = true;
+
+    try {
+      const res = await fetchAPI(`/api/users/${editingUserId}/password`, {
+        method: 'PATCH',
+        body: JSON.stringify({ password }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        showAlert(pwdAlert, data.error || 'Erro ao atualizar senha.', 'error');
+        return;
+      }
+
+      pwdModal.classList.remove('open');
+      showAlert(alertEl, 'Senha atualizada com sucesso.', 'success');
+    } catch {
+      showAlert(pwdAlert, 'Erro de conexão.', 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  async function loadUsers() {
+    try {
+      const res = await fetchAPI('/api/users');
+      if (!res.ok) throw new Error();
+      const users = await res.json();
+      renderUsers(users);
+    } catch {
+      showAlert(alertEl, 'Erro ao carregar usuários.', 'error');
+    }
+  }
+
+  function renderUsers(users) {
+    if (!users.length) {
+      listEl.innerHTML = `<tr><td colspan="6"><div class="empty-state"><span class="empty-icon">👥</span><div class="empty-title">Nenhum usuário cadastrado</div></div></td></tr>`;
+      return;
+    }
+
+    listEl.innerHTML = users.map(u => `
+      <tr>
+        <td><strong>${escapeHtml(u.name)}</strong></td>
+        <td style="color:var(--text-muted)">${escapeHtml(u.email)}</td>
+        <td><span class="badge ${u.role === 'financeiro' ? 'badge-approved' : 'badge-pending'}">${u.role}</span></td>
+        <td>${u.team || '—'}</td>
+        <td>
+          <span class="badge ${u.active ? 'badge-approved' : 'badge-rejected'}">
+            ${u.active ? 'Ativo' : 'Inativo'}
+          </span>
+        </td>
+        <td>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button class="btn btn-outline btn-sm" onclick="openPwdModal(${u.id})">Senha</button>
+            <button class="btn btn-outline btn-sm" onclick="toggleUser(${u.id}, ${u.active})">
+              ${u.active ? 'Desativar' : 'Ativar'}
+            </button>
+          </div>
+        </td>
+      </tr>`).join('');
+  }
+
+  window.openPwdModal = function(id) {
+    editingUserId = id;
+    document.getElementById('new-password').value = '';
+    hideAlert(pwdAlert);
+    pwdModal.classList.add('open');
+  };
+
+  window.toggleUser = async function(id, currentActive) {
+    const action = currentActive ? 'desativar' : 'ativar';
+    if (!confirm(`Confirma ${action} este usuário?`)) return;
+
+    try {
+      const res = await fetchAPI(`/api/users/${id}/toggle`, { method: 'PATCH' });
+      const data = await res.json();
+      if (!res.ok) { showAlert(alertEl, data.error, 'error'); return; }
+      showAlert(alertEl, data.message, 'success');
+      await loadUsers();
+    } catch {
+      showAlert(alertEl, 'Erro de conexão.', 'error');
+    }
+  };
+});
+
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str || '';
+  return d.innerHTML;
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minhas Solicitações — Reembolsos Nobel Capital</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <a class="navbar-brand" href="form.html">
+    Nobel Capital <span>Reembolsos</span>
+  </a>
+  <ul class="navbar-nav">
+    <li><a href="form.html">Nova Solicitação</a></li>
+    <li><a href="minhas-solicitacoes.html" class="active">Minhas Solicitações</a></li>
+  </ul>
+  <div class="navbar-user">
+    <div class="navbar-user-info">
+      <div class="navbar-user-name" id="navbar-user-name">—</div>
+      <div class="navbar-user-role" id="navbar-user-role">—</div>
+    </div>
+    <button class="btn-logout" id="btn-logout">Sair</button>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+    <div>
+      <h1 class="page-title">Minhas Solicitações</h1>
+      <p class="page-subtitle">Acompanhe o status dos seus pedidos de reembolso.</p>
+    </div>
+    <a href="form.html" class="btn btn-primary">+ Nova Solicitação</a>
+  </div>
+
+  <div id="page-alert" class="alert"></div>
+
+  <!-- Tabs -->
+  <div class="tab-nav">
+    <button class="tab-btn active" data-status="all">
+      Todos <span class="tab-count" style="display:none">0</span>
+    </button>
+    <button class="tab-btn" data-status="pending">
+      Pendentes <span class="tab-count" style="display:none">0</span>
+    </button>
+    <button class="tab-btn" data-status="approved">
+      Aprovados <span class="tab-count" style="display:none">0</span>
+    </button>
+    <button class="tab-btn" data-status="rejected">
+      Recusados <span class="tab-count" style="display:none">0</span>
+    </button>
+  </div>
+
+  <div class="card" style="overflow:hidden">
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>Data Despesa</th>
+            <th>Categoria</th>
+            <th>Centro de Custo</th>
+            <th>Valor</th>
+            <th>Status</th>
+            <th>Enviado em</th>
+          </tr>
+        </thead>
+        <tbody id="reimbursements-list">
+          <tr><td colspan="6">
+            <div class="loading-overlay">
+              <div class="spinner"></div>
+              <span>Carregando...</span>
+            </div>
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de detalhe -->
+<div class="modal-backdrop" id="detail-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title" id="modal-title">Detalhes do Pedido</h2>
+      <button class="modal-close" id="modal-close">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body">
+      <div class="loading-overlay"><div class="spinner"></div></div>
+    </div>
+  </div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/solicitacoes.js"></script>
+</body>
+</html>

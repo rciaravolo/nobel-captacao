@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — Reembolsos Nobel Capital</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .login-form { display: flex; flex-direction: column; gap: 18px; }
+    .divider-text {
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin: 4px 0;
+    }
+  </style>
+</head>
+<body class="auth-page">
+
+<div class="auth-card">
+  <div class="auth-header">
+    <div class="brand-name">Nobel Capital</div>
+    <div class="brand-sub">Sistema de Reembolsos</div>
+  </div>
+
+  <div class="auth-body">
+    <div id="login-alert" class="alert"></div>
+
+    <form id="login-form" class="login-form" novalidate>
+      <div class="form-group">
+        <label class="form-label" for="email">Email corporativo</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          class="form-control"
+          placeholder="voce@nobelcapital.com.br"
+          autocomplete="email"
+          required
+        >
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">Senha</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          class="form-control"
+          placeholder="••••••••"
+          autocomplete="current-password"
+          required
+        >
+      </div>
+
+      <button type="submit" id="btn-login" class="btn btn-primary btn-lg">
+        Entrar
+      </button>
+    </form>
+
+    <p class="divider-text" style="margin-top:20px">
+      Problemas de acesso? Fale com o financeiro.
+    </p>
+  </div>
+</div>
+
+<script src="js/config.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Redireciona se já está logado
+  const token = localStorage.getItem('nobel_reembolsos_token');
+  const user  = (() => { try { return JSON.parse(localStorage.getItem('nobel_reembolsos_user')); } catch { return null; } })();
+  if (token && user) {
+    window.location.href = user.role === 'financeiro' ? '/admin.html' : '/form.html';
+    return;
+  }
+
+  const form    = document.getElementById('login-form');
+  const alertEl = document.getElementById('login-alert');
+  const btn     = document.getElementById('btn-login');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email    = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+
+    if (!email || !password) {
+      showError('Preencha email e senha.');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.classList.add('btn-loading');
+    btn.textContent = 'Entrando...';
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        showError(data.error || 'Credenciais inválidas.');
+        return;
+      }
+
+      localStorage.setItem('nobel_reembolsos_token', data.token);
+      localStorage.setItem('nobel_reembolsos_user', JSON.stringify(data.user));
+
+      window.location.href = data.user.role === 'financeiro' ? '/admin.html' : '/form.html';
+
+    } catch {
+      showError('Erro de conexão. Verifique sua internet e tente novamente.');
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove('btn-loading');
+      btn.textContent = 'Entrar';
+    }
+  });
+
+  function showError(msg) {
+    const el = document.getElementById('login-alert');
+    el.className = 'alert alert-error show';
+    el.textContent = msg;
+  }
+});
+</script>
+</body>
+</html>

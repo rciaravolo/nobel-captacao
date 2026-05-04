@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Campeonatos — Escolha o Seu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Barlow+Condensed:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { min-height: 100vh; }
+  body {
+    background: #060a06;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px 60px;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(245,232,32,0.06), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 20% 100%, rgba(13,46,13,0.4), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 100%, rgba(13,31,60,0.4), transparent 60%);
+  }
+
+  .eyebrow {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.35em;
+    color: #ffffff60;
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+
+  .hub-title {
+    font-family: 'Anton', sans-serif;
+    font-size: clamp(42px, 9vw, 96px);
+    text-align: center;
+    line-height: 0.9;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: #fff;
+    text-shadow: 4px 4px 0 #000;
+    margin-bottom: 6px;
+  }
+  .hub-title span {
+    color: #f5e820;
+    display: block;
+  }
+
+  .hub-sub {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    color: #ffffff50;
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 52px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    max-width: 860px;
+    width: 100%;
+  }
+
+  .champ-card {
+    display: block;
+    text-decoration: none;
+    border-radius: 16px;
+    padding: 36px 28px 32px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s cubic-bezier(.2,.8,.3,1.2), box-shadow 0.2s;
+    cursor: pointer;
+  }
+  .champ-card:hover { transform: translateY(-10px) scale(1.02); }
+  .champ-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+  }
+  .champ-card:hover::before { opacity: 1; }
+
+  /* SONECA */
+  .card-soneca {
+    background: linear-gradient(155deg, #112a52 0%, #0d1f3c 60%, #081530 100%);
+    border: 3px solid #f5b820;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(245,184,32,0.15);
+  }
+  .card-soneca:hover {
+    box-shadow: 0 20px 60px rgba(0,0,0,0.7), 0 0 40px rgba(245,184,32,0.2), 0 0 0 1px #f5b820;
+  }
+  .card-soneca::before {
+    background: radial-gradient(ellipse at top, rgba(245,184,32,0.08), transparent 70%);
+  }
+  .card-soneca .accent { color: #f5b820; }
+  .card-soneca .tag {
+    background: #f5b820;
+    color: #081530;
+  }
+  .card-soneca .enter-btn {
+    background: #f5b820;
+    color: #081530;
+    box-shadow: 0 4px 0 #d49a0c;
+  }
+  .card-soneca .enter-btn:hover { background: #ffc833; }
+
+  /* DESCARGAS */
+  .card-descargas {
+    background: linear-gradient(155deg, #0d2e0d 0%, #071a07 60%, #040f04 100%);
+    border: 3px solid #c8f020;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(200,240,32,0.1);
+  }
+  .card-descargas:hover {
+    box-shadow: 0 20px 60px rgba(0,0,0,0.7), 0 0 40px rgba(200,240,32,0.2), 0 0 0 1px #c8f020;
+  }
+  .card-descargas::before {
+    background: radial-gradient(ellipse at top, rgba(200,240,32,0.07), transparent 70%);
+  }
+  .card-descargas .accent { color: #c8f020; }
+  .card-descargas .tag {
+    background: #c8f020;
+    color: #071a07;
+  }
+  .card-descargas .enter-btn {
+    background: #c8f020;
+    color: #071a07;
+    box-shadow: 0 4px 0 #8aaa10;
+  }
+  .card-descargas .enter-btn:hover { background: #d8ff30; }
+
+  .card-badge {
+    display: inline-block;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+  }
+
+  .card-mascot {
+    font-size: 56px;
+    line-height: 1;
+    margin-bottom: 12px;
+    display: block;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+    transition: transform 0.15s;
+  }
+  .champ-card:hover .card-mascot { transform: scale(1.15) rotate(-5deg); }
+
+  .card-eyebrow {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    color: #ffffff60;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .card-name {
+    font-family: 'Anton', sans-serif;
+    font-size: clamp(28px, 4vw, 46px);
+    line-height: 0.88;
+    text-transform: uppercase;
+    color: #fff;
+    text-shadow: 3px 3px 0 rgba(0,0,0,0.5);
+    margin-bottom: 4px;
+  }
+  .card-name .big {
+    display: block;
+    font-size: clamp(38px, 5.5vw, 64px);
+  }
+  .card-tagline {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: #ffffff70;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin: 14px 0 24px;
+    line-height: 1.4;
+  }
+
+  .enter-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Anton', sans-serif;
+    font-size: 15px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 12px 24px;
+    border-radius: 6px;
+    transition: transform 0.1s, background 0.15s;
+    transform: skew(-4deg);
+  }
+  .enter-btn span { display: inline-block; transform: skew(4deg); }
+  .champ-card:hover .enter-btn { transform: skew(-4deg) scale(1.04); }
+
+  .card-divider {
+    height: 2px;
+    border-radius: 2px;
+    margin: 20px 0;
+    opacity: 0.25;
+  }
+  .card-soneca .card-divider { background: #f5b820; }
+  .card-descargas .card-divider { background: #c8f020; }
+
+  .card-rules {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .card-rule {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: #ffffff70;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    line-height: 1.3;
+  }
+  .card-rule .icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+
+  .footer {
+    margin-top: 40px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: #ffffff25;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    text-align: center;
+  }
+
+  @media (max-width: 640px) {
+    body { padding: 32px 16px 48px; justify-content: flex-start; padding-top: 48px; }
+    .grid { grid-template-columns: 1fr; max-width: 420px; gap: 16px; }
+    .hub-title { font-size: 52px; }
+    .hub-sub { margin-bottom: 32px; }
+    .champ-card { padding: 28px 22px 24px; }
+    .card-name .big { font-size: 44px; }
+    .card-mascot { font-size: 44px; }
+  }
+
+</style>
+</head>
+<body>
+
+<div class="eyebrow">Nobel Capital · Grupo da Firma</div>
+<h1 class="hub-title">BORA<span>APOSTAR?</span></h1>
+<div class="hub-sub">Escolha o campeonato que quer acompanhar</div>
+
+<div class="grid">
+
+  <!-- SONECA -->
+  <a class="champ-card card-soneca" href="soneca.html" id="card-soneca" onclick="return sonecaClick(this, event)">
+    <span class="card-badge tag">Pontos Corridos · Ativo</span>
+    <span class="card-mascot">&#128564;</span>
+    <div class="card-eyebrow">Campeonato</div>
+    <div class="card-name">
+      DA<br><span class="big accent">SONECA</span>
+    </div>
+    <div class="card-tagline">Acertar a hora que ele volta<br>é uma arte. Voltar é com ele.</div>
+    <div class="card-divider"></div>
+    <div class="card-rules">
+      <div class="card-rule"><span class="icon">&#128336;</span>Aposte no horário de chegada</div>
+      <div class="card-rule"><span class="icon">&#127942;</span>Mais perto ganha 3 pts</div>
+      <div class="card-rule"><span class="icon">&#128100;</span>Léo · Victor · Vini · Bradock · Luka · Gaspar · Paulo</div>
+    </div>
+    <div style="margin-top:24px;">
+      <span class="enter-btn"><span>ENTRAR &#8594;</span></span>
+    </div>
+  </a>
+
+  <!-- DESCARGAS -->
+  <a class="champ-card card-descargas" href="descargas.html">
+    <span class="card-badge tag">Pontos Corridos · Ativo</span>
+    <span class="card-mascot">&#128169;</span>
+    <div class="card-eyebrow">Campeonato</div>
+    <div class="card-name">
+      DAS<br><span class="big accent">DESCARGAS</span>
+    </div>
+    <div class="card-tagline">Acerte quantas vezes ele vai<br>ao banheiro no dia.</div>
+    <div class="card-divider"></div>
+    <div class="card-rules">
+      <div class="card-rule"><span class="icon">&#128701;</span>Aposte o número de idas</div>
+      <div class="card-rule"><span class="icon">&#127942;</span>Mais perto ganha 3 pts</div>
+      <div class="card-rule"><span class="icon">&#128100;</span>Léo · Victor · Vini · Bradock · Luka · Gaspar · Paulo</div>
+    </div>
+    <div style="margin-top:24px;">
+      <span class="enter-btn"><span>ENTRAR &#8594;</span></span>
+    </div>
+  </a>
+
+</div>
+
+<div class="footer">Aqui não é só aposta. É respeito ao trono.</div>
+
+<script>
+// Admin badge
+var adminParam = new URLSearchParams(window.location.search).get('admin');
+if (adminParam === 'nobel2026') {
+  document.getElementById('card-soneca').href = 'soneca.html?admin=nobel2026';
+  document.querySelector('.card-descargas').href = 'descargas.html?admin=nobel2026';
+  var badge = document.createElement('div');
+  badge.style.cssText = 'position:fixed;top:12px;right:14px;background:#c8f020;color:#040f04;font-family:Anton,sans-serif;font-size:12px;letter-spacing:0.12em;padding:6px 14px;border-radius:6px;z-index:9999;';
+  badge.textContent = '★ MODO ADMIN';
+  document.body.appendChild(badge);
+}
+
+// Popup Barella — expira 2026-05-01
+var BARELLA_EXPIRY = new Date('2026-05-01');
+
+// Injeta keyframes para a animação do boneco
+var animStyle = document.createElement('style');
+animStyle.textContent = '@keyframes barellaWiggle{0%{transform:rotate(-8deg) scale(1)}50%{transform:rotate(8deg) scale(1.07)}100%{transform:rotate(-8deg) scale(1)}} @keyframes popupIn{from{transform:scale(0.5);opacity:0}to{transform:scale(1);opacity:1}}';
+document.head.appendChild(animStyle);
+
+function sonecaClick(card, e) {
+  if (new Date() >= BARELLA_EXPIRY) return true;
+  e.preventDefault();
+
+  var dest = card.href;
+
+  // Overlay
+  var overlay = document.createElement('div');
+  overlay.style.cssText = [
+    'position:fixed',
+    'top:0','left:0','width:100%','height:100%',
+    'background:rgba(0,0,0,0.88)',
+    'z-index:999999',
+    'display:flex',
+    'align-items:center',
+    'justify-content:center',
+    'box-sizing:border-box',
+    'padding:20px'
+  ].join(';');
+
+  // Caixa central
+  var box = document.createElement('div');
+  box.style.cssText = [
+    'display:flex','flex-direction:column','align-items:center',
+    'text-align:center',
+    'animation:popupIn 0.3s cubic-bezier(.2,.8,.3,1.3) forwards',
+    'max-width:360px','width:100%'
+  ].join(';');
+
+  // Balão de fala
+  var balloon = document.createElement('div');
+  balloon.style.cssText = [
+    'background:#ffffff',
+    'color:#081530',
+    'font-family:Anton,sans-serif',
+    'font-size:22px',
+    'text-transform:uppercase',
+    'letter-spacing:0.03em',
+    'line-height:1.2',
+    'padding:20px 28px',
+    'border-radius:20px',
+    'border:3px solid #f5b820',
+    'box-shadow:4px 4px 0 #d49a0c',
+    'margin-bottom:20px',
+    'width:100%',
+    'box-sizing:border-box'
+  ].join(';');
+  balloon.textContent = 'O Japones enganou geral!!!';
+
+  // Barella wiggling
+  var img = document.createElement('img');
+  img.src = 'barella.png';
+  img.alt = 'Barella';
+  img.style.cssText = [
+    'width:160px','height:auto',
+    'filter:drop-shadow(0 8px 24px rgba(0,0,0,0.7))',
+    'animation:barellaWiggle 0.4s ease-in-out infinite alternate'
+  ].join(';');
+
+  // Botão entrar
+  var btn = document.createElement('button');
+  btn.style.cssText = [
+    'margin-top:24px',
+    'background:#f5b820',
+    'color:#081530',
+    'font-family:Anton,sans-serif',
+    'font-size:17px',
+    'letter-spacing:0.1em',
+    'text-transform:uppercase',
+    'border:none',
+    'padding:16px 36px',
+    'border-radius:8px',
+    'box-shadow:0 4px 0 #d49a0c',
+    'cursor:pointer',
+    'width:100%',
+    'box-sizing:border-box'
+  ].join(';');
+  btn.textContent = 'ENTRAR NO CAMPEONATO →';
+
+  btn.addEventListener('click', function(ev) {
+    ev.stopPropagation();
+    document.body.removeChild(overlay);
+    window.location.href = dest;
+  });
+
+  overlay.addEventListener('click', function(ev) {
+    if (ev.target === overlay) document.body.removeChild(overlay);
+  });
+
+  box.appendChild(balloon);
+  box.appendChild(img);
+  box.appendChild(btn);
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+
+  return false;
+}
+</script>
+</body>
+</html>
