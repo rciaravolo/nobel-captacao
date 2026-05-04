@@ -1,0 +1,8 @@
+name = "campeonato"
+pages_build_output_dir = "."
+compatibility_date = "2024-09-23"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "campeonato-db"
+database_id = "5e44b5ed-056a-4714-9472-8ae4a0e12d29"
