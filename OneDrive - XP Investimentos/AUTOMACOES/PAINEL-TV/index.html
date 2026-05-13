@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel Nobel Capital</title>
+<style>
+  :root {
+    --bg: #000000;
+    --surface: #0d0d0d;
+    --border: #1a1a1a;
+    --divider: #2a2a2a;
+    --gold: #b8962e;
+    --gold-light: #d4ae4a;
+    --green: #4ade80;
+    --red: #f87171;
+    --text: #ffffff;
+    --muted: #666666;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Header ── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 28px 72px 24px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .logo img {
+    height: 64px;
+    display: block;
+  }
+
+  .header-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+  }
+
+  #clock {
+    font-size: 42px;
+    font-weight: 300;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.04em;
+    color: var(--text);
+  }
+
+  #date-label {
+    font-size: 18px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* ── Slides ── */
+  .slides-wrapper {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    padding: 40px 72px 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.7s ease;
+    z-index: 0;
+  }
+
+  .slide.active {
+    opacity: 1;
+    pointer-events: auto;
+    z-index: 1;
+  }
+
+  /* ── Slide title ── */
+  .slide-title {
+    font-size: 15px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--gold);
+    margin-bottom: 36px;
+  }
+
+  /* ── Captação hero (split bar model) ── */
+  .cap-hero-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 36px;
+  }
+
+  .cap-hero-label {
+    font-size: 15px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .cap-hero-value {
+    font-size: 76px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+    line-height: 1;
+    margin-bottom: 24px;
+  }
+
+  .cap-hero-value.positive { color: var(--green); }
+  .cap-hero-value.negative { color: var(--red); }
+
+  .split-bar {
+    display: flex;
+    width: 100%;
+    height: 90px;
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+
+  .split-saida {
+    background: #111111;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text);
+    font-size: 24px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    transition: width 0.6s ease;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 0 20px;
+  }
+
+  .split-entrada {
+    background: var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #000000;
+    font-size: 24px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    transition: width 0.6s ease;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 0 20px;
+  }
+
+  .split-pcts {
+    display: flex;
+    width: 100%;
+    margin-bottom: 36px;
+  }
+
+  .split-pct-item {
+    text-align: center;
+    font-size: 16px;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+  }
+
+  /* ── Custódia hero ── */
+  .hero-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 56px;
+    margin-bottom: 32px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .hero-block {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .hero-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+  }
+
+  .hero-value {
+    font-size: 68px;
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+    color: var(--gold);
+  }
+
+  .secondary-group {
+    display: flex;
+    gap: 40px;
+    padding-bottom: 6px;
+  }
+
+  .secondary-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .secondary-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+  }
+
+  .secondary-value {
+    font-size: 30px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .secondary-value.gold { color: var(--gold); }
+
+  /* ── Duas tabelas lado a lado ── */
+  .tables-row {
+    display: flex;
+    gap: 56px;
+  }
+
+  .table-col {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .table-col-equipe { flex: 0 0 44%; }
+  .table-col-tipo   { flex: 1; }
+
+  .table-col-header {
+    display: grid;
+    padding: 0 0 14px;
+    border-bottom: 1px solid var(--gold);
+    margin-bottom: 4px;
+  }
+
+  .table-col-header span {
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--gold);
+    text-align: right;
+  }
+
+  .table-col-header span:first-child { text-align: left; color: var(--muted); }
+
+  /* equipe: 4 colunas */
+  .header-equipe { grid-template-columns: 1fr 148px 148px 148px; }
+  .row-equipe    { grid-template-columns: 1fr 148px 148px 148px; }
+
+  /* tipo: 4 colunas */
+  .header-tipo { grid-template-columns: 1fr 136px 136px 136px; }
+  .row-tipo    { grid-template-columns: 1fr 136px 136px 136px; }
+
+  .table-col-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .table-col-row {
+    display: grid;
+    align-items: center;
+    padding: 11px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .table-col-row:last-child { border-bottom: none; }
+
+  .col-name {
+    font-size: 19px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .col-val {
+    font-size: 18px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+
+  .col-val.gold    { color: var(--gold); }
+  .col-val.pos     { color: var(--green); }
+  .col-val.neg     { color: var(--red); }
+  .col-val.muted   { color: var(--muted); font-weight: 400; }
+
+  /* ── Ranking table (kept for slide 2) ── */
+  .ranking-header {
+    display: grid;
+    grid-template-columns: 1fr 180px 180px 180px;
+    padding: 0 0 10px;
+    border-bottom: 1px solid var(--gold);
+    margin-bottom: 4px;
+  }
+
+  .ranking-header span {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--gold);
+    text-align: right;
+  }
+
+  .ranking-header span:first-child { text-align: left; color: var(--muted); }
+
+  .ranking-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ranking-row {
+    display: grid;
+    grid-template-columns: 1fr 180px 180px 180px;
+    align-items: center;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .ranking-row:last-child { border-bottom: none; }
+
+  .ranking-equipe {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .ranking-cell {
+    font-size: 16px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+
+  .ranking-cell.gold { color: var(--gold); }
+  .ranking-cell.positive { color: var(--green); }
+  .ranking-cell.negative { color: var(--red); }
+  .ranking-cell.muted { color: var(--muted); font-weight: 400; font-size: 14px; }
+
+  /* custódia: 2 colunas */
+  .ranking-header.two-col {
+    grid-template-columns: 1fr 220px 140px;
+  }
+  .ranking-row.two-col {
+    grid-template-columns: 1fr 220px 140px;
+  }
+
+  /* ── Footer ── */
+  footer { flex-shrink: 0; }
+
+  .progress-bar-track {
+    width: 100%;
+    height: 2px;
+    background: var(--border);
+  }
+
+  .progress-bar-fill {
+    height: 2px;
+    background: var(--gold);
+    width: 0%;
+    transition: width 1s linear;
+  }
+
+  .footer-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 56px 14px;
+  }
+
+  .footer-ref { font-size: 15px; color: var(--muted); letter-spacing: 0.04em; }
+
+  .slide-dots { display: flex; gap: 8px; align-items: center; }
+
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--divider);
+    transition: background 0.3s;
+    cursor: pointer;
+  }
+
+  .dot.active { background: var(--gold); }
+
+  /* ── Loading ── */
+  #loading {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    font-size: 14px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    gap: 14px;
+  }
+
+  .spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="spinner"></div>
+  Carregando
+</div>
+
+<header>
+  <div class="logo">
+    <img src="/nobel.png" alt="Nobel Capital">
+  </div>
+  <div class="header-right">
+    <div id="clock">--:--:--</div>
+    <div id="date-label">--</div>
+  </div>
+</header>
+
+<div class="slides-wrapper">
+
+  <!-- SLIDE 1: Captação -->
+  <div class="slide active" id="slide-0">
+    <div class="slide-title">Captação do Mês</div>
+
+    <div class="cap-hero-section">
+      <div class="cap-hero-label">Captação Líquida</div>
+      <div class="cap-hero-value" id="cap-total">—</div>
+
+      <div class="split-bar" id="cap-split-bar">
+        <div class="split-saida" id="cap-split-saida" style="width:50%">—</div>
+        <div class="split-entrada" id="cap-split-entrada" style="width:50%">—</div>
+      </div>
+      <div class="split-pcts" id="cap-split-pcts">
+        <div class="split-pct-item" id="cap-pct-saida" style="width:50%">—</div>
+        <div class="split-pct-item" id="cap-pct-entrada" style="width:50%">—</div>
+      </div>
+    </div>
+
+    <div class="tables-row">
+      <!-- Esquerda: por equipe -->
+      <div class="table-col table-col-equipe">
+        <div class="table-col-header header-equipe">
+          <span>Equipe</span>
+          <span>Líquido</span>
+          <span>Entrada</span>
+          <span>Saída</span>
+        </div>
+        <div class="table-col-list" id="cap-ranking"></div>
+      </div>
+
+      <!-- Direita: por tipo -->
+      <div class="table-col table-col-tipo">
+        <div class="table-col-header header-tipo">
+          <span>Tipo</span>
+          <span>Entrada</span>
+          <span>Saída</span>
+          <span>Líquido</span>
+        </div>
+        <div class="table-col-list" id="cap-tipos"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 2: Custódia -->
+  <div class="slide" id="slide-1">
+    <div class="slide-title">Custódia (AUM)</div>
+
+    <div class="cap-hero-section">
+      <div class="cap-hero-label">AUM Total</div>
+      <div class="cap-hero-value gold" id="cust-total">—</div>
+
+      <div class="split-bar" id="cust-split-bar">
+        <div class="split-saida" id="cust-split-pj" style="width:50%">—</div>
+        <div class="split-entrada" id="cust-split-pf" style="width:50%">—</div>
+      </div>
+      <div class="split-pcts" id="cust-split-pcts">
+        <div class="split-pct-item" id="cust-pct-pj" style="width:50%">— PJ</div>
+        <div class="split-pct-item" id="cust-pct-pf" style="width:50%">— PF</div>
+      </div>
+    </div>
+
+    <div class="tables-row">
+      <!-- Esquerda: por equipe -->
+      <div class="table-col table-col-equipe">
+        <div class="table-col-header header-equipe" style="grid-template-columns: 1fr 130px 100px;">
+          <span>Equipe</span>
+          <span>Custódia</span>
+          <span>Clientes</span>
+        </div>
+        <div class="table-col-list" id="cust-ranking"></div>
+      </div>
+
+      <!-- Direita: PF vs PJ por equipe -->
+      <div class="table-col table-col-tipo">
+        <div class="table-col-header header-tipo" style="grid-template-columns: 1fr 130px 100px 130px 100px;">
+          <span>Equipe</span>
+          <span>PF</span>
+          <span>Cli.</span>
+          <span>PJ</span>
+          <span>Cli.</span>
+        </div>
+        <div class="table-col-list" id="cust-equipe-pfpj"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div class="progress-bar-track">
+    <div class="progress-bar-fill" id="progress"></div>
+  </div>
+  <div class="footer-info">
+    <div class="footer-ref" id="footer-ref">—</div>
+    <div class="slide-dots">
+      <div class="dot active" data-i="0"></div>
+      <div class="dot" data-i="1"></div>
+    </div>
+  </div>
+</footer>
+
+<script>
+const SLIDE_DURATION = 60;
+const REFRESH_INTERVAL = 5 * 60 * 1000;
+const NUM_SLIDES = 2;
+
+let currentSlide = 0;
+let slideTimer = null;
+let dados = null;
+
+function formatBRL(val) {
+  const abs = Math.abs(val);
+  const sign = val < 0 ? '-' : '';
+  if (abs >= 1e9) return sign + 'R$ ' + (abs / 1e9).toFixed(2).replace('.', ',') + ' bi';
+  if (abs >= 1e6) return sign + 'R$ ' + (abs / 1e6).toFixed(1).replace('.', ',') + ' M';
+  if (abs >= 1e3) return sign + 'R$ ' + (abs / 1e3).toFixed(0) + ' mil';
+  return sign + 'R$ ' + abs.toFixed(0);
+}
+
+// helpers para compatibilidade com browsers antigos (TVs)
+function n(x) { return (x === null || x === undefined) ? 0 : x; }
+function arr(x) { return (x === null || x === undefined) ? [] : x; }
+function obj(x) { return (x === null || x === undefined) ? {} : x; }
+
+function pad(v) { return v < 10 ? '0' + v : '' + v; }
+
+function fmtInt(v) {
+  var s = String(Math.round(n(v))), r = '', c = 0;
+  for (var i = s.length - 1; i >= 0; i--) {
+    if (c > 0 && c % 3 === 0) r = '.' + r;
+    r = s[i] + r; c++;
+  }
+  return r;
+}
+
+function formatBRLFull(val) {
+  val = n(val);
+  var neg = val < 0, abs = Math.abs(val);
+  var str = abs.toFixed(2), parts = str.split('.');
+  var intPart = parts[0], dec = parts[1];
+  var r = '', c = 0;
+  for (var i = intPart.length - 1; i >= 0; i--) {
+    if (c > 0 && c % 3 === 0) r = '.' + r;
+    r = intPart[i] + r; c++;
+  }
+  return (neg ? '-' : '') + 'R$ ' + r + ',' + dec;
+}
+
+function formatDate(iso) {
+  if (!iso) return '—';
+  try {
+    var d = new Date(iso);
+    return pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + d.getFullYear();
+  } catch (e) { return '—'; }
+}
+
+function updateClock() {
+  var now = new Date();
+  document.getElementById('clock').textContent = pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+  var dias = ['DOMINGO','SEGUNDA-FEIRA','TERÇA-FEIRA','QUARTA-FEIRA','QUINTA-FEIRA','SEXTA-FEIRA','SÁBADO'];
+  var meses = ['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
+  document.getElementById('date-label').textContent = dias[now.getDay()] + ', ' + pad(now.getDate()) + ' DE ' + meses[now.getMonth()];
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+function renderCaptacao(cap) {
+  var total = n(cap.total);
+  var positivo = n(cap.positivo);
+  var negativo = Math.abs(n(cap.negativo));
+
+  var el = document.getElementById('cap-total');
+  el.textContent = formatBRLFull(total);
+  el.className = 'cap-hero-value ' + (total >= 0 ? 'positive' : 'negative');
+
+  var totalAbs = positivo + negativo;
+  var saidaPct = totalAbs > 0 ? (negativo / totalAbs * 100) : 50;
+  var entradaPct = 100 - saidaPct;
+
+  document.getElementById('cap-split-saida').style.width = saidaPct.toFixed(1) + '%';
+  document.getElementById('cap-split-saida').textContent = formatBRLFull(n(cap.negativo));
+  document.getElementById('cap-split-entrada').style.width = entradaPct.toFixed(1) + '%';
+  document.getElementById('cap-split-entrada').textContent = formatBRLFull(positivo);
+  document.getElementById('cap-pct-saida').style.width = saidaPct.toFixed(1) + '%';
+  document.getElementById('cap-pct-saida').textContent = saidaPct.toFixed(1) + '%';
+  document.getElementById('cap-pct-entrada').style.width = entradaPct.toFixed(1) + '%';
+  document.getElementById('cap-pct-entrada').textContent = entradaPct.toFixed(1) + '%';
+
+  var tiposList = document.getElementById('cap-tipos');
+  tiposList.innerHTML = '';
+  arr(cap.por_tipo).forEach(function(t) {
+    var liq = n(t.liquido);
+    var row = document.createElement('div');
+    row.className = 'table-col-row row-tipo';
+    row.innerHTML = '<div class="col-name">' + t.tipo + '</div>' +
+      '<div class="col-val pos">' + formatBRL(n(t.entrada)) + '</div>' +
+      '<div class="col-val neg">' + formatBRL(n(t.saida)) + '</div>' +
+      '<div class="col-val ' + (liq >= 0 ? 'pos' : 'neg') + '">' + formatBRL(liq) + '</div>';
+    tiposList.appendChild(row);
+  });
+
+  var list = document.getElementById('cap-ranking');
+  list.innerHTML = '';
+  arr(cap.por_equipe).forEach(function(e) {
+    var val = n(e.total);
+    var row = document.createElement('div');
+    row.className = 'table-col-row row-equipe';
+    row.innerHTML = '<div class="col-name">' + e.equipe + '</div>' +
+      '<div class="col-val ' + (val >= 0 ? 'pos' : 'neg') + '">' + formatBRL(val) + '</div>' +
+      '<div class="col-val pos">' + formatBRL(n(e.positivo)) + '</div>' +
+      '<div class="col-val neg">' + formatBRL(n(e.negativo)) + '</div>';
+    list.appendChild(row);
+  });
+}
+
+function renderCustodia(cust) {
+  document.getElementById('cust-total').textContent = formatBRL(n(cust.total));
+
+  var tipoPessoa = arr(cust.por_tipo_pessoa);
+  var pfFound = tipoPessoa.filter(function(t) { return t.tipo_pessoa === 'PF'; });
+  var pjFound = tipoPessoa.filter(function(t) { return t.tipo_pessoa === 'PJ'; });
+  var pfRow = pfFound.length ? pfFound[0] : { custodia: 0, clientes: 0 };
+  var pjRow = pjFound.length ? pjFound[0] : { custodia: 0, clientes: 0 };
+  var totalAbs = n(pfRow.custodia) + n(pjRow.custodia);
+  var pjPct = totalAbs > 0 ? (n(pjRow.custodia) / totalAbs * 100) : 50;
+  var pfPct = 100 - pjPct;
+
+  document.getElementById('cust-split-pj').style.width = pjPct.toFixed(1) + '%';
+  document.getElementById('cust-split-pj').textContent = 'PJ  ' + formatBRLFull(n(pjRow.custodia));
+  document.getElementById('cust-split-pf').style.width = pfPct.toFixed(1) + '%';
+  document.getElementById('cust-split-pf').textContent = 'PF  ' + formatBRLFull(n(pfRow.custodia));
+  document.getElementById('cust-pct-pj').style.width = pjPct.toFixed(1) + '%';
+  document.getElementById('cust-pct-pj').textContent = pjPct.toFixed(1) + '%  ·  ' + fmtInt(pjRow.clientes) + ' clientes';
+  document.getElementById('cust-pct-pf').style.width = pfPct.toFixed(1) + '%';
+  document.getElementById('cust-pct-pf').textContent = pfPct.toFixed(1) + '%  ·  ' + fmtInt(pfRow.clientes) + ' clientes';
+
+  var list = document.getElementById('cust-ranking');
+  list.innerHTML = '';
+  arr(cust.por_equipe).forEach(function(e) {
+    var row = document.createElement('div');
+    row.className = 'table-col-row';
+    row.style.gridTemplateColumns = '1fr 130px 100px';
+    row.innerHTML = '<div class="col-name">' + e.equipe + '</div>' +
+      '<div class="col-val gold">' + formatBRL(n(e.custodia)) + '</div>' +
+      '<div class="col-val muted">' + fmtInt(e.clientes) + '</div>';
+    list.appendChild(row);
+  });
+
+  var pfpjList = document.getElementById('cust-equipe-pfpj');
+  pfpjList.innerHTML = '';
+  arr(cust.equipe_pfpj).forEach(function(e) {
+    var row = document.createElement('div');
+    row.className = 'table-col-row';
+    row.style.gridTemplateColumns = '1fr 130px 100px 130px 100px';
+    row.innerHTML = '<div class="col-name">' + e.equipe + '</div>' +
+      '<div class="col-val gold">' + formatBRL(n(e.pf)) + '</div>' +
+      '<div class="col-val muted">' + fmtInt(e.clientes_pf) + '</div>' +
+      '<div class="col-val gold">' + formatBRL(n(e.pj)) + '</div>' +
+      '<div class="col-val muted">' + fmtInt(e.clientes_pj) + '</div>';
+    pfpjList.appendChild(row);
+  });
+}
+
+function renderFooter() {
+  if (!dados) return;
+  var refs = [
+    'Ref: ' + formatDate(dados.captacao && dados.captacao.data_ref) + '  ·  Atualizado em ' + formatDate(dados.captacao && dados.captacao.data_atualizacao),
+    'Posição: ' + formatDate(dados.custodia && dados.custodia.data_posicao),
+  ];
+  document.getElementById('footer-ref').textContent = refs[currentSlide] || '—';
+}
+
+document.querySelectorAll('.dot').forEach(function(d) {
+  d.addEventListener('click', function() { goToSlide(parseInt(d.getAttribute('data-i'))); });
+});
+
+function goToSlide(idx) {
+  document.querySelectorAll('.slide').forEach(function(s, i) { s.classList.toggle('active', i === idx); });
+  document.querySelectorAll('.dot').forEach(function(d, i) { d.classList.toggle('active', i === idx); });
+  currentSlide = idx;
+  renderFooter();
+  startProgress();
+}
+
+function startProgress() {
+  clearTimeout(slideTimer);
+  var bar = document.getElementById('progress');
+  bar.style.transition = 'none';
+  bar.style.width = '0%';
+  bar.getBoundingClientRect();
+  bar.style.transition = 'width ' + SLIDE_DURATION + 's linear';
+  bar.style.width = '100%';
+  slideTimer = setTimeout(function() { goToSlide((currentSlide + 1) % NUM_SLIDES); }, SLIDE_DURATION * 1000);
+}
+
+function fetchDados() {
+  return fetch('/api/dados').then(function(res) {
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.json();
+  });
+}
+
+function init() {
+  var loadingEl = document.getElementById('loading');
+  fetchDados().then(function(data) {
+    dados = data;
+    try { renderCaptacao(obj(dados.captacao)); } catch(e) { console.error('cap:', e); }
+    try { renderCustodia(obj(dados.custodia)); } catch(e) {
+      loadingEl.innerHTML = '<span style="color:#f87171;font-size:12px">Erro: ' + e.message + '</span>';
+      setTimeout(init, 30000); return;
+    }
+    loadingEl.style.display = 'none';
+    goToSlide(0);
+  }).catch(function(e) {
+    loadingEl.innerHTML = '<span style="color:#f87171;font-size:13px">Falha na API: ' + e.message + '<br>Tentando em 30s...</span>';
+    setTimeout(init, 30000);
+  });
+}
+
+setInterval(function() {
+  fetchDados().then(function(data) {
+    dados = data;
+    try { renderCaptacao(obj(dados.captacao)); } catch(e) {}
+    try { renderCustodia(obj(dados.custodia)); } catch(e) {}
+    renderFooter();
+  }).catch(function() {});
+}, REFRESH_INTERVAL);
+
+init();
+</script>
+</body>
+</html>

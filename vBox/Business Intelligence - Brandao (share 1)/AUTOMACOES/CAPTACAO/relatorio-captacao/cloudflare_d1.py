@@ -62,7 +62,7 @@ def _query(sql: str, params: list = None) -> dict:
     url = f"{_BASE_URL}/query"
     body = {"sql": sql, "params": params or []}
     try:
-        resp = requests.post(url, headers=_headers(), json=body, timeout=30)
+        resp = requests.post(url, headers=_headers(), json=body, timeout=60)
         resp.raise_for_status()
     except requests.RequestException as e:
         raise RuntimeError(f"Erro na chamada D1 HTTP: {e}") from e
