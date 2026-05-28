@@ -584,6 +584,11 @@ def _enviar_com_smtp(html_corpo: str, destinatario: str, assunto: str) -> None:
     from email.mime.multipart import MIMEMultipart
     from email.mime.text import MIMEText
 
+    if not config.SMTP_HOST:
+        raise ValueError(
+            "SMTP_HOST não configurado. "
+            "Defina o Secret SMTP_HOST no GitHub Actions (ex: smtp.office365.com)."
+        )
     if not config.SMTP_USER or not config.SMTP_PASSWORD:
         raise ValueError(
             "SMTP_USER e SMTP_PASSWORD não configurados. "
