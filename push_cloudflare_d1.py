@@ -136,7 +136,17 @@ def main():
         df_pos[config.CUST_VALOR], errors='coerce'
     ).fillna(0)
 
-    logger.info(f"  → {len(df_pos)} registros de custódia")
+    logger.info(f"  → {len(df_pos)} registros brutos de custódia")
+
+    # Agrega por assessor+nucleo+status antes de enviar ao D1.
+    # O relatório usa apenas o total por assessor — não há necessidade de
+    # enviar uma linha por cliente (7940 linhas → ~40 linhas agregadas).
+    group_cols = [c for c in [config.CUST_ASSESSOR, config.CUST_TIME, config.CUST_STATUS]
+                  if c in df_pos.columns]
+    if group_cols and config.CUST_VALOR in df_pos.columns:
+        df_pos = df_pos.groupby(group_cols, as_index=False)[config.CUST_VALOR].sum()
+        logger.info(f"  → {len(df_pos)} registros após agregação por assessor")
+
     push_tb_positivador(df_pos)
 
     logger.info("=" * 60)

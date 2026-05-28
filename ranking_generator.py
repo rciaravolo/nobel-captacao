@@ -6,10 +6,10 @@ logger = logging.getLogger(__name__)
 
 
 def _agrupar_assessores(df: pd.DataFrame) -> pd.DataFrame:
-    """Agrupa por assessor somando captação, filtrando apenas assessores ativos do JSON."""
-    ativos = df.attrs.get('assessores_ativos', None)
-    if ativos and 'Codigo Real' in df.columns:
-        df = df[df['Codigo Real'].astype(str).str.strip().str.upper().isin(ativos)].copy()
+    """Agrupa por assessor somando captação, filtrando apenas assessores dos rankings individuais."""
+    ranking = df.attrs.get('assessores_ranking') or df.attrs.get('assessores_ativos', None)
+    if ranking and 'Codigo Real' in df.columns:
+        df = df[df['Codigo Real'].astype(str).str.strip().str.upper().isin(ranking)].copy()
     return (
         df.groupby(config.COLUNA_ASSESSOR)
         .agg(
@@ -109,13 +109,19 @@ def gerar_ranking_custodia_assessores(df_cust: pd.DataFrame):
     """Agrega custodia por assessor e separa em >=50mi e <50mi. Retorna (df_grande, df_pequeno)."""
     logger.info("Gerando ranking CUSTODIA por ASSESSORES...")
 
-    # Normaliza nomes removendo acentos para unificar grafias diferentes
     import unicodedata
     def normalizar_nome(nome):
         return unicodedata.normalize('NFD', nome).encode('ascii', 'ignore').decode('utf-8').strip().upper()
-    
+
     df_cust = df_cust.copy()
     df_cust[config.CUST_ASSESSOR] = df_cust[config.CUST_ASSESSOR].apply(normalizar_nome)
+
+    # Filtra apenas assessores que devem aparecer nos rankings individuais
+    nomes_ranking = df_cust.attrs.get('nomes_ranking')
+    if nomes_ranking:
+        antes = len(df_cust)
+        df_cust = df_cust[df_cust[config.CUST_ASSESSOR].isin(nomes_ranking)].copy()
+        logger.info(f"  → Filtro ranking individual: {antes} → {len(df_cust)} registros")
 
     agrupado = (
         df_cust.groupby(config.CUST_ASSESSOR)

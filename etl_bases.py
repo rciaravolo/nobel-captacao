@@ -5,6 +5,69 @@ import config
 
 logger = logging.getLogger(__name__)
 
+# ── Helpers PostgreSQL ────────────────────────────────────────────────────────
+
+def _pg_conn():
+    import psycopg2
+    return psycopg2.connect(
+        host=config.PG_HOST,
+        port=config.PG_PORT,
+        dbname=config.PG_DB,
+        user=config.PG_USER,
+        password=config.PG_PASSWORD,
+        sslmode=config.PG_SSLMODE,
+        connect_timeout=15,
+    )
+
+
+def _pull_tb_cap_postgres() -> tuple[pd.DataFrame, str]:
+    """Lê captacao.tb_cap do PostgreSQL e retorna (df, data_referencia_str)."""
+    logger.info("  [PG] Lendo captacao.tb_cap...")
+    conn = _pg_conn()
+    try:
+        df = pd.read_sql("""
+            SELECT codigo_real   AS "Codigo Real",
+                   captacao      AS "Captação",
+                   nucleo        AS "Núcleo",
+                   assessor      AS "Assessor",
+                   data_transacao AS "Data",
+                   status        AS "STATUS"
+            FROM captacao.tb_cap
+        """, conn)
+
+        # Data de referência armazenada em metadata
+        try:
+            cur = conn.cursor()
+            cur.execute("SELECT valor FROM captacao.metadata WHERE chave = 'data_referencia'")
+            row = cur.fetchone()
+            data_str = row[0] if row else pd.Timestamp.now().strftime('%d/%m/%Y')
+            cur.close()
+        except Exception:
+            data_str = pd.Timestamp.now().strftime('%d/%m/%Y')
+
+        logger.info(f"  [PG] {len(df)} registros de tb_cap | referência: {data_str}")
+        return df, data_str
+    finally:
+        conn.close()
+
+
+def _pull_tb_positivador_postgres() -> pd.DataFrame:
+    """Lê captacao.tb_positivador do PostgreSQL."""
+    logger.info("  [PG] Lendo captacao.tb_positivador...")
+    conn = _pg_conn()
+    try:
+        df = pd.read_sql("""
+            SELECT assessor  AS "Assessor",
+                   nucleo    AS "Núcleo",
+                   net_em_m  AS "Net Em M",
+                   status    AS "Status"
+            FROM captacao.tb_positivador
+        """, conn)
+        logger.info(f"  [PG] {len(df)} registros de tb_positivador")
+        return df
+    finally:
+        conn.close()
+
 # Colunas mínimas necessárias para o relatório
 COLUNAS_NECESSARIAS = [config.COLUNA_VALOR, config.COLUNA_TIME, config.COLUNA_ASSESSOR]
 
@@ -17,6 +80,37 @@ def carregar_assessores_ativos() -> set:
     ativos = {a['id_assessor'].strip().upper() for a in data if a.get('status', '').strip().lower() == 'ativo'}
     logger.info(f"  → {len(ativos)} assessores ativos carregados do JSON")
     return ativos
+
+
+def carregar_assessores_ranking() -> set:
+    """Retorna set de ids dos assessores que aparecem nos rankings individuais (incluir_ranking != false)."""
+    with open(config.ARQUIVO_ASSESSORES, encoding='utf-8-sig') as f:
+        data = json.load(f)
+    ranking = {
+        a['id_assessor'].strip().upper()
+        for a in data
+        if a.get('status', '').strip().lower() == 'ativo'
+        and a.get('incluir_ranking', True) is not False
+    }
+    logger.info(f"  → {len(ranking)} assessores incluídos nos rankings individuais")
+    return ranking
+
+
+def carregar_nomes_ranking() -> set:
+    """Retorna set de nomes normalizados dos assessores para rankings individuais de custódia."""
+    import unicodedata
+
+    def _norm(nome):
+        return unicodedata.normalize('NFD', nome).encode('ascii', 'ignore').decode('utf-8').strip().upper()
+
+    with open(config.ARQUIVO_ASSESSORES, encoding='utf-8-sig') as f:
+        data = json.load(f)
+    return {
+        _norm(a['nome_assessor'])
+        for a in data
+        if a.get('status', '').strip().lower() == 'ativo'
+        and a.get('incluir_ranking', True) is not False
+    }
 
 
 def carregar_base(caminho: str, sheet: str, engine: str = 'openpyxl') -> pd.DataFrame:
@@ -97,6 +191,12 @@ def filtrar_dados(df: pd.DataFrame, assessores_ativos: set = None) -> pd.DataFra
 def executar_etl_escritorio() -> tuple[pd.DataFrame, str]:
     """Usa Base1 (TB_CAP histórico) para calcular o total bruto do escritório (barra divergente).
     Retorna (df, data_atualizacao_str)."""
+    if config.FONTE_DADOS == 'postgres':
+        logger.info("=== ETL ESCRITORIO (PostgreSQL — total bruto sem filtro) ===")
+        df, data_str = _pull_tb_cap_postgres()
+        df = padronizar_dataframe(df, nome_base='tb_cap-postgres-escritorio')
+        return df, data_str
+
     if config.FONTE_DADOS == 'd1':
         from cloudflare_d1 import pull_tb_cap
         logger.info("=== ETL ESCRITORIO (D1 — total bruto sem filtro) ===")
@@ -123,6 +223,22 @@ def executar_etl_escritorio() -> tuple[pd.DataFrame, str]:
 
 def executar_etl(assessores_ativos: set = None) -> pd.DataFrame:
     """Pipeline ETL: usa TB_CAP (Base1) como fonte única de captação."""
+    if config.FONTE_DADOS == 'postgres':
+        logger.info("=== INICIANDO ETL (fonte: PostgreSQL) ===")
+        if assessores_ativos is None:
+            assessores_ativos = carregar_assessores_ativos()
+        df, _ = _pull_tb_cap_postgres()
+        df = padronizar_dataframe(df, nome_base='tb_cap-postgres')
+        df = filtrar_por_equipes(df)
+        if assessores_ativos and 'Codigo Real' in df.columns:
+            antes = len(df)
+            df = df[df['Codigo Real'].astype(str).str.strip().str.upper().isin(assessores_ativos)].copy()
+            logger.info(f"  → Assessores ativos: {antes} → {len(df)} registros")
+        df.attrs['assessores_ativos'] = assessores_ativos
+        df.attrs['assessores_ranking'] = carregar_assessores_ranking()
+        logger.info(f"=== ETL POSTGRES CONCLUÍDO: {len(df)} registros válidos ===")
+        return df
+
     if config.FONTE_DADOS == 'd1':
         from cloudflare_d1 import pull_tb_cap
         logger.info("=== INICIANDO ETL (fonte: Cloudflare D1) ===")
@@ -135,6 +251,7 @@ def executar_etl(assessores_ativos: set = None) -> pd.DataFrame:
             df = df[df['Codigo Real'].astype(str).str.strip().str.upper().isin(assessores_ativos)].copy()
             logger.info(f"  → Assessores ativos: {antes} → {len(df)} registros")
         df.attrs['assessores_ativos'] = assessores_ativos
+        df.attrs['assessores_ranking'] = carregar_assessores_ranking()
         logger.info(f"=== ETL D1 CONCLUÍDO: {len(df)} registros válidos ===")
         return df
 
@@ -172,8 +289,9 @@ def executar_etl(assessores_ativos: set = None) -> pd.DataFrame:
         df = df[df['Codigo Real'].astype(str).str.strip().str.upper().isin(assessores_ativos)].copy()
         logger.info(f"  → Assessores ativos (por nome): {antes} → {len(df)} registros")
 
-    # Guarda assessores_ativos no df como atributo para uso posterior no ranking
+    # Guarda assessores nos attrs para uso posterior no ranking
     df.attrs['assessores_ativos'] = assessores_ativos
+    df.attrs['assessores_ranking'] = carregar_assessores_ranking()
 
     logger.info(f"=== ETL CONCLUÍDO: {len(df)} registros válidos ===")
     return df
@@ -181,6 +299,12 @@ def executar_etl(assessores_ativos: set = None) -> pd.DataFrame:
 
 def executar_etl_custodia_escritorio() -> pd.DataFrame:
     """Retorna TB_POSITIVADOR sem filtro de assessores — para total Nobel de custódia."""
+    if config.FONTE_DADOS == 'postgres':
+        logger.info("=== ETL CUSTODIA ESCRITORIO (PostgreSQL — sem filtro) ===")
+        df = _pull_tb_positivador_postgres()
+        df[config.CUST_VALOR] = pd.to_numeric(df[config.CUST_VALOR], errors='coerce').fillna(0)
+        return df
+
     if config.FONTE_DADOS == 'd1':
         from cloudflare_d1 import pull_tb_positivador
         logger.info("=== ETL CUSTODIA ESCRITORIO (D1 — sem filtro) ===")
@@ -197,6 +321,37 @@ def executar_etl_custodia_escritorio() -> pd.DataFrame:
 
 def executar_etl_custodia(assessores_ativos: set = None) -> pd.DataFrame:
     """ETL da TB_POSITIVADOR: retorna custodia por assessor sem OPS."""
+    if config.FONTE_DADOS == 'postgres':
+        import unicodedata
+        logger.info("=== INICIANDO ETL CUSTODIA (fonte: PostgreSQL) ===")
+        if assessores_ativos is None:
+            assessores_ativos = carregar_assessores_ativos()
+        df = _pull_tb_positivador_postgres()
+        df[config.CUST_VALOR] = pd.to_numeric(df[config.CUST_VALOR], errors='coerce').fillna(0)
+        for col in [config.CUST_ASSESSOR, config.CUST_TIME, config.CUST_STATUS]:
+            if col in df.columns:
+                df[col] = df[col].astype(str).str.strip().str.upper()
+        permitidas = [e.upper() for e in config.EQUIPES_PERMITIDAS]
+        antes = len(df)
+        df = df[df[config.CUST_TIME].isin(permitidas)].copy()
+        logger.info(f"  → Equipes permitidas: {antes} → {len(df)} registros")
+        if assessores_ativos and config.CUST_ASSESSOR in df.columns:
+            def _norm(nome):
+                return unicodedata.normalize('NFD', nome).encode('ascii', 'ignore').decode('utf-8').strip().upper()
+            with open(config.ARQUIVO_ASSESSORES, 'r', encoding='utf-8') as _f:
+                _data = json.load(_f)
+            nomes_ativos = {_norm(a['nome_assessor']) for a in _data if a.get('status', '').upper() == 'ATIVO'}
+            antes = len(df)
+            df['_norm'] = df[config.CUST_ASSESSOR].apply(_norm)
+            df = df[df['_norm'].isin(nomes_ativos)].copy()
+            df = df.drop(columns=['_norm'])
+            logger.info(f"  → Assessores ativos: {antes} → {len(df)} registros")
+        cols = [c for c in [config.CUST_ASSESSOR, config.CUST_TIME, config.CUST_VALOR, config.CUST_STATUS] if c in df.columns]
+        result = df[cols].copy()
+        result.attrs['nomes_ranking'] = carregar_nomes_ranking()
+        logger.info(f"=== ETL CUSTODIA POSTGRES CONCLUÍDO: {len(result)} registros ===")
+        return result
+
     if config.FONTE_DADOS == 'd1':
         from cloudflare_d1 import pull_tb_positivador
         import unicodedata
@@ -222,6 +377,7 @@ def executar_etl_custodia(assessores_ativos: set = None) -> pd.DataFrame:
             df = df[df['_norm'].isin(nomes_ativos)].copy()
             df = df.drop(columns=['_norm'])
             logger.info(f"  → Assessores ativos: {antes} → {len(df)} registros")
+        df.attrs['nomes_ranking'] = carregar_nomes_ranking()
         logger.info(f"=== ETL CUSTODIA D1 CONCLUÍDO: {len(df)} registros ===")
         return df
 
@@ -279,7 +435,8 @@ def executar_etl_custodia(assessores_ativos: set = None) -> pd.DataFrame:
     # Seleciona colunas relevantes
     cols = [c for c in [config.CUST_ASSESSOR, config.CUST_TIME,
                         config.CUST_VALOR, config.CUST_STATUS] if c in df.columns]
-    df = df[cols]
+    df = df[cols].copy()
+    df.attrs['nomes_ranking'] = carregar_nomes_ranking()
 
     logger.info(f"=== ETL CUSTODIA CONCLUIDO: {len(df)} clientes ===")
     return df

@@ -209,3 +209,95 @@ def gerar_grafico_captacao(df_diario: pd.DataFrame) -> str:
 
     logger.info(f"  Grafico gerado: {len(img_b64)} chars base64")
     return img_b64
+
+
+def gerar_grafico_contas(
+    chart_ativ: list,
+    chart_hab: list,
+    chart_evas: list,
+    faixas_label: list,
+    periodo: str = '',
+) -> str:
+    """Gera gráfico de barras agrupadas (Ativação / Habilitação / Evasão por faixa patrimonial).
+
+    Retorna imagem PNG em base64 pronta para embed inline no HTML do e-mail.
+    """
+    COR_ATIV   = '#C9A84C'   # dourado Nobel
+    COR_HAB    = '#111111'   # preto
+    COR_EVAS   = '#8B2929'   # vermelho escuro
+    COR_FUNDO  = '#F5F5F5'
+    COR_GRID   = '#E0E0E0'
+    COR_TEXTO  = '#333333'
+
+    n = len(faixas_label)
+    x = np.arange(n)
+    largura = 0.25
+
+    fig, ax = plt.subplots(figsize=(8, 5.2))
+    fig.patch.set_facecolor(COR_FUNDO)
+    ax.set_facecolor(COR_FUNDO)
+
+    bars_a = ax.bar(x - largura, chart_ativ, largura, color=COR_ATIV,  label='Ativação',    zorder=3, edgecolor='none')
+    bars_h = ax.bar(x,           chart_hab,  largura, color=COR_HAB,   label='Habilitação',  zorder=3, edgecolor='none')
+    bars_e = ax.bar(x + largura, chart_evas, largura, color=COR_EVAS,  label='Evasão',      zorder=3, edgecolor='none')
+
+    # Labels acima de cada barra
+    for bars, dados in [(bars_a, chart_ativ), (bars_h, chart_hab), (bars_e, chart_evas)]:
+        for bar, val in zip(bars, dados):
+            if val > 0:
+                ax.text(
+                    bar.get_x() + bar.get_width() / 2,
+                    bar.get_height() + 0.08,
+                    str(val),
+                    ha='center', va='bottom',
+                    fontsize=8, fontweight='bold', color=COR_TEXTO,
+                )
+
+    ax.set_xticks(x)
+    ax.set_xticklabels(faixas_label, fontsize=9, color=COR_TEXTO)
+    ax.yaxis.set_visible(False)
+
+    ax.grid(axis='y', color=COR_GRID, linewidth=0.5, linestyle='--', zorder=0)
+    ax.axhline(y=0, color='#cccccc', linewidth=0.6, zorder=1)
+    ax.set_axisbelow(True)
+
+    for spine in ['top', 'right', 'left']:
+        ax.spines[spine].set_visible(False)
+    ax.spines['bottom'].set_color(COR_GRID)
+
+    fig.text(
+        0.5, 0.96,
+        'ATIVAÇÃO · HABILITAÇÃO · EVASÃO POR FAIXA PATRIMONIAL',
+        ha='center', va='top',
+        fontsize=9, fontweight='bold', color='#111111',
+    )
+    if periodo:
+        fig.text(
+            0.5, 0.89,
+            periodo.upper(),
+            ha='center', va='top',
+            fontsize=7.5, color='#666666',
+        )
+
+    ax.legend(
+        loc='lower center',
+        bbox_to_anchor=(0.5, -0.22),
+        ncol=3,
+        frameon=True,
+        fontsize=8.5,
+        edgecolor=COR_GRID,
+        fancybox=False,
+    )
+
+    fig.subplots_adjust(top=0.78, bottom=0.22, left=0.05, right=0.97)
+
+    buf = io.BytesIO()
+    fig.savefig(buf, format='png', dpi=150, bbox_inches='tight',
+                facecolor=COR_FUNDO, edgecolor='none')
+    plt.close(fig)
+    buf.seek(0)
+    img_b64 = base64.b64encode(buf.read()).decode()
+    buf.close()
+
+    logger.info(f"  Grafico contas gerado: {len(img_b64)} chars base64")
+    return img_b64
