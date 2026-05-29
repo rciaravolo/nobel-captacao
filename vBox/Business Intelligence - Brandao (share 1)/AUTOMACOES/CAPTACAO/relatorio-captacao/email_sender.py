@@ -507,7 +507,7 @@ def _tabela_custodia_times(df: pd.DataFrame, cor1: str, cor2: str) -> str:
 
 
 _TIER_COR = {
-    'atras':  '#C0785A',
+    'atras':  '#5B9EC9',
     'neutro': '#5A9E6F',
     'bronze': '#CD7F32',
     'prata':  '#8A8A8A',
