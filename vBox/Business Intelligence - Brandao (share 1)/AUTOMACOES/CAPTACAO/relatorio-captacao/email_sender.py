@@ -31,7 +31,6 @@ def gerar_html_relatorio(
     rank_cust_grande: pd.DataFrame = None,
     rank_cust_pequeno: pd.DataFrame = None,
     data_atualizacao: str = None,
-    grafico_captacao_b64: str = '',
     dados_contas: dict = None,
     grafico_contas_b64: str = '',
 ) -> str:
@@ -70,9 +69,6 @@ def gerar_html_relatorio(
       {_barra_divergente(resumo, cor1, cor2)}
     </td>
   </tr>
-
-  <!-- GRAFICO CAPTACAO DIARIA -->
-  {_secao_grafico(grafico_captacao_b64)}
 
   <!-- RANKING TIMES -->
   <tr>
@@ -185,20 +181,6 @@ def _barra_divergente(resumo: dict, cor1: str, cor2: str) -> str:
     </td>
   </tr>
 </table>"""
-
-
-def _secao_grafico(grafico_b64: str) -> str:
-    """Retorna bloco HTML com o grafico de captacao embutido, ou vazio se nao disponivel."""
-    if not grafico_b64:
-        return ''
-    return f"""<tr>
-    <td colspan="2" style="padding:12px 32px 4px;">
-      <img src="data:image/png;base64,{grafico_b64}"
-           alt="Captacao Liquida - Evolucao Diaria"
-           width="100%" style="display:block;border-radius:6px;
-           border:1px solid #dde3ea;" />
-    </td>
-  </tr>"""
 
 
 def _card(cor1: str, cor2: str, titulo: str, valor: str) -> str:
@@ -347,7 +329,7 @@ def _kpi_strip_contas(dados: dict, cor1: str, cor2: str) -> str:
       <div style="font-size:8px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;
                   color:#6B7E90;margin-bottom:7px;">Saldo Líquido</div>
       <div style="font-size:26px;font-weight:700;color:{cor_saldo};line-height:1;margin-bottom:5px;">{saldo_fmt}</div>
-      <div style="font-size:10px;color:#6B7E90;">{seg1_evas} evasões 1MM+ vs <b style="color:#1C2B3A;">{seg1_ativ} entrada</b></div>
+      <div style="font-size:10px;color:#6B7E90;">{seg1_ativ} ativações 1MM+ vs <b style="color:#C0392B;">{seg1_evas} evasões</b></div>
     </td>
   </tr>
 </table>"""
@@ -524,6 +506,25 @@ def _tabela_custodia_times(df: pd.DataFrame, cor1: str, cor2: str) -> str:
 </table>"""
 
 
+_TIER_COR = {
+    'atras':  '#C0785A',
+    'neutro': '#5A9E6F',
+    'bronze': '#CD7F32',
+    'prata':  '#8A8A8A',
+    'ouro':   '#B8860B',
+}
+
+
+def _custodia_valor_html(fmt: str, tier: str) -> str:
+    if tier == 'preta':
+        return (
+            f'<span style="background:#111111;color:#ffffff;padding:2px 7px;'
+            f'border-radius:3px;font-weight:700;font-size:11px;">{fmt}</span>'
+        )
+    cor = _TIER_COR.get(tier, '#1a6e2e')
+    return f'<span style="color:{cor};font-weight:700;">{fmt}</span>'
+
+
 def _tabela_custodia_assessores(df: pd.DataFrame, cor1: str, cor2: str, label: str) -> str:
     if df is None or df.empty:
         return f'<p style="color:#888;font-size:12px;">Nenhum assessor {label}.</p>'
@@ -531,11 +532,12 @@ def _tabela_custodia_assessores(df: pd.DataFrame, cor1: str, cor2: str, label: s
     linhas = ''
     for _, row in df.iterrows():
         bg = '#f5f5f5' if int(row['posicao']) % 2 == 0 else '#ffffff'
+        tier = row.get('custodia_tier', '')
+        valor_html = _custodia_valor_html(row['total_custodia_fmt'], tier)
         linhas += f"""<tr style="background-color:{bg};">
           <td style="padding:7px 8px;color:#111111;font-size:12px;">
             {str(row[config.CUST_ASSESSOR]).title()}</td>
-          <td style="padding:7px 8px;color:#1a6e2e;font-weight:700;
-                     text-align:right;font-size:12px;">{row['total_custodia_fmt']}</td>
+          <td style="padding:7px 8px;text-align:right;font-size:12px;">{valor_html}</td>
         </tr>"""
 
     return f"""<table width="100%" cellpadding="0" cellspacing="0"
@@ -544,7 +546,7 @@ def _tabela_custodia_assessores(df: pd.DataFrame, cor1: str, cor2: str, label: s
     <th style="padding:8px;color:{cor2};font-size:10px;font-weight:700;
                text-transform:uppercase;text-align:left;">Assessor</th>
     <th style="padding:8px;color:{cor2};font-size:10px;font-weight:700;
-               text-transform:uppercase;text-align:right;">Custodia</th>
+               text-transform:uppercase;text-align:right;">Custódia</th>
   </tr></thead>
   <tbody>{linhas}</tbody>
 </table>"""
@@ -584,6 +586,11 @@ def _enviar_com_smtp(html_corpo: str, destinatario: str, assunto: str) -> None:
     from email.mime.multipart import MIMEMultipart
     from email.mime.text import MIMEText
 
+    if not config.SMTP_HOST:
+        raise ValueError(
+            "SMTP_HOST não configurado. "
+            "Defina o Secret SMTP_HOST no GitHub Actions (ex: smtp.office365.com)."
+        )
     if not config.SMTP_USER or not config.SMTP_PASSWORD:
         raise ValueError(
             "SMTP_USER e SMTP_PASSWORD não configurados. "
@@ -619,7 +626,6 @@ def enviar_relatorio(
     rank_cust_grande: pd.DataFrame = None,
     rank_cust_pequeno: pd.DataFrame = None,
     data_atualizacao: str = None,
-    grafico_captacao_b64: str = '',
     dados_contas: dict = None,
     grafico_contas_b64: str = '',
 ) -> None:
@@ -628,7 +634,6 @@ def enviar_relatorio(
         resumo, rank_times, rank_positivos, rank_negativos,
         resumo_cust, rank_cust_times, rank_cust_grande, rank_cust_pequeno,
         data_atualizacao=data_atualizacao,
-        grafico_captacao_b64=grafico_captacao_b64,
         dados_contas=dados_contas,
         grafico_contas_b64=grafico_contas_b64,
     )

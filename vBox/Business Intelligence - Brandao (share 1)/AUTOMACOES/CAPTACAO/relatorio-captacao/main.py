@@ -30,7 +30,7 @@ from ranking_generator import (
     gerar_ranking_custodia_assessores,
 )
 from email_sender import enviar_relatorio
-from chart_generator import preparar_dados_diarios, gerar_grafico_captacao, gerar_grafico_contas
+from chart_generator import gerar_grafico_contas
 from contas_etl import carregar_dados_contas, FAIXAS_LABEL as CONTAS_FAIXAS_LABEL
 
 
@@ -61,12 +61,7 @@ def main():
         rank_positivos  = gerar_ranking_assessores_positivos(df)
         rank_negativos  = gerar_ranking_assessores_negativos(df)
 
-        # 4️⃣  Grafico de captacao diaria (mes atual)
-        logger.info("Gerando grafico de captacao diaria...")
-        df_diario = preparar_dados_diarios(df_escritorio)
-        grafico_captacao_b64 = gerar_grafico_captacao(df_diario)
-
-        # 5️⃣  Dados de movimentação de base (Ativação / Habilitação / Evasão)
+        # 4️⃣  Dados de movimentação de base (Ativação / Habilitação / Evasão)
         logger.info("Carregando dados de contas (ativacao/habilitacao/evasao)...")
         dados_contas = carregar_dados_contas()
         grafico_contas_b64 = ''
@@ -93,7 +88,6 @@ def main():
             resumo, rank_times, rank_positivos, rank_negativos,
             resumo_cust, rank_cust_times, rank_cust_grande, rank_cust_pequeno,
             data_atualizacao=data_atualizacao,
-            grafico_captacao_b64=grafico_captacao_b64,
             dados_contas=dados_contas,
             grafico_contas_b64=grafico_contas_b64,
         )
