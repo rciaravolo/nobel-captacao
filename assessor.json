@@ -67,7 +67,8 @@
     "nome_assessor": "Rafael Bonfim",
     "equipe": "BRAVO",
     "status": "Ativo",
-    "mail_assessor": ""
+    "mail_assessor": "",
+    "incluir_ranking": false
   },
   {
     "id_assessor": "A74348",
@@ -81,7 +82,8 @@
     "nome_assessor": "Precatório",
     "equipe": "PRECATORIO",
     "status": "Ativo",
-    "mail_assessor": ""
+    "mail_assessor": "",
+    "incluir_ranking": false
   },
   {
     "id_assessor": "A65954",
@@ -123,21 +125,24 @@
     "nome_assessor": "Leonardo Lopez",
     "equipe": "PRIVATE",
     "status": "Ativo",
-    "mail_assessor": ""
+    "mail_assessor": "",
+    "incluir_ranking": false
   },
   {
     "id_assessor": "A26496",
     "nome_assessor": "Lucas Gaspar",
     "equipe": "PRIVATE",
     "status": "Ativo",
-    "mail_assessor": ""
+    "mail_assessor": "",
+    "incluir_ranking": false
   },
   {
     "id_assessor": "A20345",
     "nome_assessor": "Luis Valente",
     "equipe": "PRIVATE",
     "status": "Ativo",
-    "mail_assessor": ""
+    "mail_assessor": "",
+    "incluir_ranking": false
   },
   {
     "id_assessor": "A25771",
@@ -151,7 +156,8 @@
     "nome_assessor": "Luka Nishiya",
     "equipe": "PRIVATE",
     "status": "Ativo",
-    "mail_assessor": ""
+    "mail_assessor": "",
+    "incluir_ranking": false
   },
   {
     "id_assessor": "A65646",
@@ -235,7 +241,8 @@
     "nome_assessor": "GEOVANNA FINDER",
     "equipe": "SMART",
     "status": "Ativo",
-    "mail_assessor": ""
+    "mail_assessor": "",
+    "incluir_ranking": false
   },
   {
     "id_assessor": "A74811",
@@ -291,6 +298,7 @@
     "nome_assessor": "Smart - Mesa",
     "equipe": "SMART",
     "status": "Ativo",
-    "mail_assessor": ""
+    "mail_assessor": "",
+    "incluir_ranking": false
   }
 ]
