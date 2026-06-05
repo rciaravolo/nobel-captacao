@@ -130,7 +130,9 @@ push_para_cloudflare.bat # Envia dados locais → Cloudflare D1
 
 ## Equipes ativas
 
-`PRIVATE`, `BRAVO`, `RIO PRETO`, `SMART-GLOBAL`, `SMART-UNIQUE`, `SMART-ALFA`
+`PRIVATE`, `BRAVO`, `RIO PRETO`, `SMART`
+
+> ⚠️ O campo `Núcleo` no Excel usa `SMART` para todos os sub-times (Global/Unique/Alfa). Os assessores continuam com sub-time em `assessor.json`, mas o filtro ETL usa `SMART`.
 
 Limite custódia: `>=50MM` (grandes) vs `<50MM` (pequenos)
 
