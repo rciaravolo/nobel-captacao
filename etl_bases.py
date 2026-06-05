@@ -82,35 +82,21 @@ def carregar_assessores_ativos() -> set:
     return ativos
 
 
-def carregar_assessores_ranking() -> set:
-    """Retorna set de ids dos assessores que aparecem nos rankings individuais (incluir_ranking != false)."""
-    with open(config.ARQUIVO_ASSESSORES, encoding='utf-8-sig') as f:
-        data = json.load(f)
-    ranking = {
-        a['id_assessor'].strip().upper()
-        for a in data
-        if a.get('status', '').strip().lower() == 'ativo'
-        and a.get('incluir_ranking', True) is not False
-    }
-    logger.info(f"  → {len(ranking)} assessores incluídos nos rankings individuais")
-    return ranking
-
-
-def carregar_nomes_ranking() -> set:
-    """Retorna set de nomes normalizados dos assessores para rankings individuais de custódia."""
+def carregar_assessores_ranking() -> tuple:
+    """Retorna (ids_ranking, nomes_ranking): assessores ativos com incluir_ranking != false."""
     import unicodedata
-
     def _norm(nome):
         return unicodedata.normalize('NFD', nome).encode('ascii', 'ignore').decode('utf-8').strip().upper()
 
     with open(config.ARQUIVO_ASSESSORES, encoding='utf-8-sig') as f:
         data = json.load(f)
-    return {
-        _norm(a['nome_assessor'])
-        for a in data
-        if a.get('status', '').strip().lower() == 'ativo'
-        and a.get('incluir_ranking', True) is not False
-    }
+    elegíveis = [a for a in data
+                 if a.get('status', '').strip().lower() == 'ativo'
+                 and a.get('incluir_ranking', True) is not False]
+    ids   = {a['id_assessor'].strip().upper() for a in elegíveis}
+    nomes = {_norm(a['nome_assessor']) for a in elegíveis}
+    logger.info(f"  → {len(ids)} assessores elegíveis para ranking")
+    return ids, nomes
 
 
 def carregar_base(caminho: str, sheet: str, engine: str = 'openpyxl') -> pd.DataFrame:
@@ -235,7 +221,6 @@ def executar_etl(assessores_ativos: set = None) -> pd.DataFrame:
             df = df[df['Codigo Real'].astype(str).str.strip().str.upper().isin(assessores_ativos)].copy()
             logger.info(f"  → Assessores ativos: {antes} → {len(df)} registros")
         df.attrs['assessores_ativos'] = assessores_ativos
-        df.attrs['assessores_ranking'] = carregar_assessores_ranking()
         logger.info(f"=== ETL POSTGRES CONCLUÍDO: {len(df)} registros válidos ===")
         return df
 
@@ -251,7 +236,6 @@ def executar_etl(assessores_ativos: set = None) -> pd.DataFrame:
             df = df[df['Codigo Real'].astype(str).str.strip().str.upper().isin(assessores_ativos)].copy()
             logger.info(f"  → Assessores ativos: {antes} → {len(df)} registros")
         df.attrs['assessores_ativos'] = assessores_ativos
-        df.attrs['assessores_ranking'] = carregar_assessores_ranking()
         logger.info(f"=== ETL D1 CONCLUÍDO: {len(df)} registros válidos ===")
         return df
 
@@ -289,9 +273,8 @@ def executar_etl(assessores_ativos: set = None) -> pd.DataFrame:
         df = df[df['Codigo Real'].astype(str).str.strip().str.upper().isin(assessores_ativos)].copy()
         logger.info(f"  → Assessores ativos (por nome): {antes} → {len(df)} registros")
 
-    # Guarda assessores nos attrs para uso posterior no ranking
+    # Guarda assessores_ativos no df como atributo para uso posterior no ranking
     df.attrs['assessores_ativos'] = assessores_ativos
-    df.attrs['assessores_ranking'] = carregar_assessores_ranking()
 
     logger.info(f"=== ETL CONCLUÍDO: {len(df)} registros válidos ===")
     return df
@@ -347,10 +330,8 @@ def executar_etl_custodia(assessores_ativos: set = None) -> pd.DataFrame:
             df = df.drop(columns=['_norm'])
             logger.info(f"  → Assessores ativos: {antes} → {len(df)} registros")
         cols = [c for c in [config.CUST_ASSESSOR, config.CUST_TIME, config.CUST_VALOR, config.CUST_STATUS] if c in df.columns]
-        result = df[cols].copy()
-        result.attrs['nomes_ranking'] = carregar_nomes_ranking()
-        logger.info(f"=== ETL CUSTODIA POSTGRES CONCLUÍDO: {len(result)} registros ===")
-        return result
+        logger.info(f"=== ETL CUSTODIA POSTGRES CONCLUÍDO: {len(df)} registros ===")
+        return df[cols]
 
     if config.FONTE_DADOS == 'd1':
         from cloudflare_d1 import pull_tb_positivador
@@ -377,7 +358,6 @@ def executar_etl_custodia(assessores_ativos: set = None) -> pd.DataFrame:
             df = df[df['_norm'].isin(nomes_ativos)].copy()
             df = df.drop(columns=['_norm'])
             logger.info(f"  → Assessores ativos: {antes} → {len(df)} registros")
-        df.attrs['nomes_ranking'] = carregar_nomes_ranking()
         logger.info(f"=== ETL CUSTODIA D1 CONCLUÍDO: {len(df)} registros ===")
         return df
 
@@ -435,8 +415,7 @@ def executar_etl_custodia(assessores_ativos: set = None) -> pd.DataFrame:
     # Seleciona colunas relevantes
     cols = [c for c in [config.CUST_ASSESSOR, config.CUST_TIME,
                         config.CUST_VALOR, config.CUST_STATUS] if c in df.columns]
-    df = df[cols].copy()
-    df.attrs['nomes_ranking'] = carregar_nomes_ranking()
+    df = df[cols]
 
     logger.info(f"=== ETL CUSTODIA CONCLUIDO: {len(df)} clientes ===")
     return df
