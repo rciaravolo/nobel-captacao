@@ -1,297 +1,296 @@
 [
   {
-    "id_assessor": "A21351",
-    "nome_assessor": "Alexandre França",
-    "equipe": "PRIVATE",
-    "status": "Ativo",
-    "email": "alexandre.franca@nobelcapital.com.br"
-  },
-  {
     "id_assessor": "A26112",
     "nome_assessor": "Argos Urbano",
     "equipe": "BRAVO",
     "status": "Ativo",
-    "email": "argos.sasso@nobelcapital.com.br"
-  },
-  {
-    "id_assessor": "A43705",
-    "nome_assessor": "Cristiane Mellote",
-    "equipe": "RIO PRETO",
-    "status": "Ativo",
-    "email": "cristiane.mellote@nobelcapital.com.br"
+    "mail_assessor": "argos.sasso@nobelcapital.com.br"
   },
   {
     "id_assessor": "A53211",
     "nome_assessor": "Diana Frajtag",
     "equipe": "BRAVO",
     "status": "Ativo",
-    "email": "diana.frajtag@nobelcapital.com.br"
+    "mail_assessor": "diana.frajtag@nobelcapital.com.br"
   },
   {
     "id_assessor": "A27823",
     "nome_assessor": "Diogo Reinoso",
     "equipe": "BRAVO",
     "status": "Ativo",
-    "email": "diogo.reinoso@nobelcapital.com.br"
+    "mail_assessor": "diogo.reinoso@nobelcapital.com.br"
   },
   {
-    "id_assessor": "A72984",
-    "nome_assessor": "Elise Okayama",
-    "equipe": "RIO PRETO",
+    "id_assessor": "A20949",
+    "nome_assessor": "Fabio Castelucci",
+    "equipe": "BRAVO",
     "status": "Ativo",
-    "email": "elise.okayama@nobelcapital.com.br"
-  },
-  {
-    "id_assessor": "A22679",
-    "nome_assessor": "Fabio Galdino",
-    "equipe": "PRIVATE",
-    "status": "Ativo",
-    "email": "fabio.galdino@nobelcapital.com.br"
+    "mail_assessor": ""
   },
   {
     "id_assessor": "A32005",
     "nome_assessor": "Fabio Ribeiro",
     "equipe": "BRAVO",
     "status": "Ativo",
-    "email": "fabio.ribeiro@nobelcapital.com.br"
-  },
-  {
-    "id_assessor": "A44655",
-    "nome_assessor": "Filipe Rezende",
-    "equipe": "SMART",
-    "status": "Ativo",
-    "email": "filipe.rezende@nobelcapital.com.br"
-  },
-  {
-    "id_assessor": "A74811",
-    "nome_assessor": "Igor Ladeira",
-    "equipe": "SMART",
-    "status": "Ativo",
-    "email": "igor.ladeira@nobelcapital.com.br"
-  },
-  {
-    "id_assessor": "A24984",
-    "nome_assessor": "Leandro Barbancho",
-    "equipe": "BRAVO",
-    "status": "Ativo",
-    "email": "leandro.barbancho@nobelcapital.com.br"
-  },
-  {
-    "id_assessor": "A72441",
-    "nome_assessor": "Leonardo Lopez",
-    "equipe": "PRIVATE",
-    "status": "Ativo",
-    "email": null,
-    "incluir_ranking": false
-  },
-  {
-    "id_assessor": "A26496",
-    "nome_assessor": "Lucas Gaspar",
-    "equipe": "PRIVATE",
-    "status": "Ativo",
-    "email": null,
-    "incluir_ranking": false
-  },
-  {
-    "id_assessor": "A26852",
-    "nome_assessor": "Lucas Pradella",
-    "equipe": "SMART",
-    "status": "Ativo",
-    "email": "lucas.pradella@nobelcapital.com.br"
-  },
-  {
-    "id_assessor": "A20345",
-    "nome_assessor": "Luis Valente",
-    "equipe": "PRIVATE",
-    "status": "Ativo",
-    "email": null,
-    "incluir_ranking": false
-  },
-  {
-    "id_assessor": "A25771",
-    "nome_assessor": "Luis Vieira",
-    "equipe": "PRIVATE",
-    "status": "Ativo",
-    "email": "luis.vieira@nobelcapital.com.br"
-  },
-  {
-    "id_assessor": "A73214",
-    "nome_assessor": "Marcelo Almeida",
-    "equipe": "RIO PRETO",
-    "status": "Ativo",
-    "email": "marcelo.almeida@nobelcapital.com.br"
-  },
-  {
-    "id_assessor": "A32561",
-    "nome_assessor": "Marco Silveira",
-    "equipe": "SMART",
-    "status": "Ativo",
-    "email": "marco.silveira@nobelcapital.com.br"
-  },
-  {
-    "id_assessor": "A26918",
-    "nome_assessor": "Nina Lima",
-    "equipe": "BRAVO",
-    "status": "Ativo",
-    "email": "nina.lima@nobelcapital.com.br"
-  },
-  {
-    "id_assessor": "A26085",
-    "nome_assessor": "Luka Nishiya",
-    "equipe": "PRIVATE",
-    "status": "Ativo",
-    "email": null,
-    "incluir_ranking": false
-  },
-  {
-    "id_assessor": "A21878",
-    "nome_assessor": "Roberta Figueira",
-    "equipe": "PRIVATE",
-    "status": "Ativo",
-    "email": "roberta.figueira@nobelcapital.com.br"
-  },
-  {
-    "id_assessor": "A74348",
-    "nome_assessor": "Simone Augusto",
-    "equipe": "BRAVO",
-    "status": "Ativo",
-    "email": "simone.augusto@nobelcapital.com.br"
-  },
-  {
-    "id_assessor": "A69286",
-    "nome_assessor": "Vitor Baqueiro",
-    "equipe": "PRIVATE",
-    "status": "Ativo",
-    "email": "vitor.baqueiro@nobelcapital.com.br"
-  },
-  {
-    "id_assessor": "A72555",
-    "nome_assessor": "Viviane Fabbri",
-    "equipe": "RIO PRETO",
-    "status": "Ativo",
-    "email": "viviane.fabbri@nobelcapital.com.br"
-  },
-  {
-    "id_assessor": "A51250",
-    "nome_assessor": "Smart - Mesa",
-    "equipe": "SMART",
-    "status": "Ativo",
-    "email": null,
-    "incluir_ranking": false
-  },
-  {
-    "id_assessor": "A56706",
-    "nome_assessor": "Evandro Delduque",
-    "equipe": "RIO PRETO",
-    "status": "Ativo",
-    "email": "evandro.delduque@nobelcapital.com.br"
-  },
-  {
-    "id_assessor": "A59119",
-    "nome_assessor": "Rodrigo Conforti",
-    "equipe": "SMART",
-    "status": "Ativo",
-    "email": "rodrigo.conforti@nobelcapital.com.br"
-  },
-  {
-    "id_assessor": "A65997",
-    "nome_assessor": "Alvaro Villa",
-    "equipe": "PRIVATE",
-    "status": "Ativo",
-    "email": "alvaro.quatrini@nobelcapital.com.br"
-  },
-  {
-    "id_assessor": "A54062",
-    "nome_assessor": "Luan Prado",
-    "equipe": "SMART",
-    "status": "Ativo",
-    "email": "luan.prado@nobelcapital.com.br"
-  },
-  {
-    "id_assessor": "A69243",
-    "nome_assessor": "Rafael Bonfim",
-    "equipe": "BRAVO",
-    "status": "Ativo",
-    "email": null,
-    "incluir_ranking": false
-  },
-  {
-    "id_assessor": "A73259",
-    "nome_assessor": "Leandro de Luna",
-    "equipe": "BRAVO",
-    "status": "Ativo",
-    "email": "leandro.deluna@nobelcapital.com.br"
-  },
-  {
-    "id_assessor": "A65954",
-    "nome_assessor": "Adriano Fonseca",
-    "equipe": "PRIVATE",
-    "status": "Ativo",
-    "email": "Adriano.fonseca@nobelcapital.com.br"
-  },
-  {
-    "id_assessor": "A95945",
-    "nome_assessor": "Fabrício Mastro",
-    "equipe": "SMART",
-    "status": "Ativo",
-    "email": "fabricio.mastro@nobelcapital.com.br"
-  },
-  {
-    "id_assessor": "FINDER01",
-    "nome_assessor": "GEOVANNA FINDER",
-    "equipe": "SMART",
-    "status": "Ativo",
-    "email": null,
-    "incluir_ranking": false
+    "mail_assessor": "fabio.ribeiro@nobelcapital.com.br"
   },
   {
     "id_assessor": "A24356",
     "nome_assessor": "Giordano Molinari",
     "equipe": "BRAVO",
     "status": "Ativo",
-    "email": "giordano.molinari@nobelcapital.com.br"
+    "mail_assessor": "giordano.molinari@nobelcapital.com.br"
+  },
+  {
+    "id_assessor": "A24984",
+    "nome_assessor": "Leandro Barbancho",
+    "equipe": "BRAVO",
+    "status": "Ativo",
+    "mail_assessor": "leandro.barbancho@nobelcapital.com.br"
+  },
+  {
+    "id_assessor": "A73259",
+    "nome_assessor": "Leandro de Luna",
+    "equipe": "BRAVO",
+    "status": "Ativo",
+    "mail_assessor": "leandro.deluna@nobelcapital.com.br"
+  },
+  {
+    "id_assessor": "A26918",
+    "nome_assessor": "Nina Lima",
+    "equipe": "BRAVO",
+    "status": "Ativo",
+    "mail_assessor": "nina.lima@nobelcapital.com.br"
+  },
+  {
+    "id_assessor": "A69243",
+    "nome_assessor": "Rafael Bonfim",
+    "equipe": "BRAVO",
+    "status": "Ativo",
+    "mail_assessor": ""
+  },
+  {
+    "id_assessor": "A74348",
+    "nome_assessor": "Simone Augusto",
+    "equipe": "BRAVO",
+    "status": "Ativo",
+    "mail_assessor": "simone.augusto@nobelcapital.com.br"
   },
   {
     "id_assessor": "PRECAS",
     "nome_assessor": "Precatório",
     "equipe": "PRECATORIO",
     "status": "Ativo",
-    "email": null,
-    "incluir_ranking": false
+    "mail_assessor": ""
   },
   {
-    "id_assessor": "Private25",
-    "nome_assessor": "Rodrigo de Sé",
+    "id_assessor": "A65954",
+    "nome_assessor": "Adriano Fonseca",
     "equipe": "PRIVATE",
     "status": "Ativo",
-    "email": "rodrigo.se@nobelcapital.com.br"
+    "mail_assessor": "adriano.fonseca@nobelcapital.com.br"
   },
   {
-    "id_assessor": "A65646",
-    "nome_assessor": "Marcelo Gaspar",
+    "id_assessor": "A21351",
+    "nome_assessor": "Alexandre França",
     "equipe": "PRIVATE",
     "status": "Ativo",
-    "email": "marcelo.gaspar@nobelcapital.com.br"
+    "mail_assessor": "alexandre.franca@nobelcapital.com.br"
+  },
+  {
+    "id_assessor": "A65997",
+    "nome_assessor": "Alvaro Villa",
+    "equipe": "PRIVATE",
+    "status": "Ativo",
+    "mail_assessor": "alvaro.quatrini@nobelcapital.com.br"
   },
   {
     "id_assessor": "A65648",
     "nome_assessor": "Eduardo Puschiavo",
     "equipe": "PRIVATE",
     "status": "Ativo",
-    "email": "ep@nobelcapital.com.br"
+    "mail_assessor": "ep@nobelcapital.com.br"
+  },
+  {
+    "id_assessor": "A22679",
+    "nome_assessor": "Fabio Galdino",
+    "equipe": "PRIVATE",
+    "status": "Ativo",
+    "mail_assessor": "fabio.galdino@nobelcapital.com.br"
+  },
+  {
+    "id_assessor": "A72441",
+    "nome_assessor": "Leonardo Lopez",
+    "equipe": "PRIVATE",
+    "status": "Ativo",
+    "mail_assessor": ""
+  },
+  {
+    "id_assessor": "A26496",
+    "nome_assessor": "Lucas Gaspar",
+    "equipe": "PRIVATE",
+    "status": "Ativo",
+    "mail_assessor": ""
+  },
+  {
+    "id_assessor": "A20345",
+    "nome_assessor": "Luis Valente",
+    "equipe": "PRIVATE",
+    "status": "Ativo",
+    "mail_assessor": ""
+  },
+  {
+    "id_assessor": "A25771",
+    "nome_assessor": "Luis Vieira",
+    "equipe": "PRIVATE",
+    "status": "Ativo",
+    "mail_assessor": "luis.vieira@nobelcapital.com.br"
+  },
+  {
+    "id_assessor": "A26085",
+    "nome_assessor": "Luka Nishiya",
+    "equipe": "PRIVATE",
+    "status": "Ativo",
+    "mail_assessor": ""
+  },
+  {
+    "id_assessor": "A65646",
+    "nome_assessor": "Marcelo Gaspar",
+    "equipe": "PRIVATE",
+    "status": "Ativo",
+    "mail_assessor": "marcelo.gaspar@nobelcapital.com.br"
+  },
+  {
+    "id_assessor": "A21878",
+    "nome_assessor": "Roberta Figueira",
+    "equipe": "PRIVATE",
+    "status": "Ativo",
+    "mail_assessor": "roberta.figueira@nobelcapital.com.br"
+  },
+  {
+    "id_assessor": "Private25",
+    "nome_assessor": "Rodrigo de Sé",
+    "equipe": "PRIVATE",
+    "status": "Ativo",
+    "mail_assessor": "rodrigo.se@nobelcapital.com.br"
+  },
+  {
+    "id_assessor": "A69286",
+    "nome_assessor": "Vitor Baqueiro",
+    "equipe": "PRIVATE",
+    "status": "Ativo",
+    "mail_assessor": "vitor.baqueiro@nobelcapital.com.br"
+  },
+  {
+    "id_assessor": "A43705",
+    "nome_assessor": "Cristiane Mellote",
+    "equipe": "RIO PRETO",
+    "status": "Ativo",
+    "mail_assessor": "cristiane.mellote@nobelcapital.com.br"
+  },
+  {
+    "id_assessor": "A72984",
+    "nome_assessor": "Elise Okayama",
+    "equipe": "RIO PRETO",
+    "status": "Ativo",
+    "mail_assessor": "elise.okayama@nobelcapital.com.br"
+  },
+  {
+    "id_assessor": "A56706",
+    "nome_assessor": "Evandro Delduque",
+    "equipe": "RIO PRETO",
+    "status": "Ativo",
+    "mail_assessor": "evandro.delduque@nobelcapital.com.br"
+  },
+  {
+    "id_assessor": "A73214",
+    "nome_assessor": "Marcelo Almeida",
+    "equipe": "RIO PRETO",
+    "status": "Ativo",
+    "mail_assessor": "marcelo.almeida@nobelcapital.com.br"
+  },
+  {
+    "id_assessor": "A72555",
+    "nome_assessor": "Viviane Fabbri",
+    "equipe": "RIO PRETO",
+    "status": "Ativo",
+    "mail_assessor": "viviane.fabbri@nobelcapital.com.br"
+  },
+  {
+    "id_assessor": "A95945",
+    "nome_assessor": "Fabrício Mastro",
+    "equipe": "SMART",
+    "status": "Ativo",
+    "mail_assessor": "fabricio.mastro@nobelcapital.com.br"
+  },
+  {
+    "id_assessor": "A44655",
+    "nome_assessor": "Filipe Rezende",
+    "equipe": "SMART",
+    "status": "Ativo",
+    "mail_assessor": "filipe.rezende@nobelcapital.com.br"
+  },
+  {
+    "id_assessor": "FINDER01",
+    "nome_assessor": "GEOVANNA FINDER",
+    "equipe": "SMART",
+    "status": "Ativo",
+    "mail_assessor": ""
+  },
+  {
+    "id_assessor": "A74811",
+    "nome_assessor": "Igor Ladeira",
+    "equipe": "SMART",
+    "status": "Ativo",
+    "mail_assessor": "igor.ladeira@nobelcapital.com.br"
+  },
+  {
+    "id_assessor": "A54062",
+    "nome_assessor": "Luan Prado",
+    "equipe": "SMART",
+    "status": "Ativo",
+    "mail_assessor": "luan.prado@nobelcapital.com.br"
+  },
+  {
+    "id_assessor": "A26852",
+    "nome_assessor": "Lucas Pradella",
+    "equipe": "SMART",
+    "status": "Ativo",
+    "mail_assessor": "lucas.pradella@nobelcapital.com.br"
+  },
+  {
+    "id_assessor": "A32561",
+    "nome_assessor": "Marco Silveira",
+    "equipe": "SMART",
+    "status": "Ativo",
+    "mail_assessor": "marco.silveira@nobelcapital.com.br"
   },
   {
     "id_assessor": "A23591",
     "nome_assessor": "Marcos Pereira",
     "equipe": "SMART",
     "status": "Ativo",
-    "email": "marcos.pereira@nobelcapital.com.br"
+    "mail_assessor": "marcos.pereira@nobelcapital.com.br"
   },
   {
     "id_assessor": "A96628",
     "nome_assessor": "Rafael Paschoal",
     "equipe": "SMART",
     "status": "Ativo",
-    "email": "rafael.paschoal@nobelcapital.com.br"
+    "mail_assessor": "rafael.paschoal@nobelcapital.com.br"
+  },
+  {
+    "id_assessor": "A59119",
+    "nome_assessor": "Rodrigo Conforti",
+    "equipe": "SMART",
+    "status": "Ativo",
+    "mail_assessor": "rodrigo.conforti@nobelcapital.com.br"
+  },
+  {
+    "id_assessor": "A51250",
+    "nome_assessor": "Smart - Mesa",
+    "equipe": "SMART",
+    "status": "Ativo",
+    "mail_assessor": ""
   }
 ]
