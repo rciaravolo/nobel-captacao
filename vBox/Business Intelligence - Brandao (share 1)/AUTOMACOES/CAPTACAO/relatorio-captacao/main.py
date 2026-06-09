@@ -20,7 +20,8 @@ logger = logging.getLogger(__name__)
 
 # ── IMPORTS DO PROJETO ────────────────────────────────────────────────────────
 import config
-from etl_bases import executar_etl, executar_etl_custodia, carregar_assessores_ativos, executar_etl_escritorio, executar_etl_custodia_escritorio
+from etl_bases import (executar_etl, executar_etl_custodia, carregar_assessores_ativos,
+                       carregar_assessores_ranking, executar_etl_escritorio, executar_etl_custodia_escritorio)
 from consolidacao import calcular_resumo, calcular_resumo_custodia
 from ranking_generator import (
     gerar_ranking_times,
@@ -42,10 +43,11 @@ def main():
 
     try:
         # 1️⃣  ETL — Leitura e merge das bases
-        # 1️⃣  Carrega assessores ativos das 6 equipes (uma unica vez)
         assessores_ativos = carregar_assessores_ativos()
+        ids_ranking, nomes_ranking = carregar_assessores_ranking()
 
         df = executar_etl(assessores_ativos)
+        df.attrs['assessores_ranking'] = ids_ranking
 
         if df.empty:
             logger.warning("DataFrame vazio após ETL. Nenhum registro CONVERTIDO encontrado.")
@@ -78,10 +80,13 @@ def main():
 
         # 6️⃣  ETL e rankings de custodia
         df_cust             = executar_etl_custodia(assessores_ativos)
+        df_cust.attrs['nomes_ranking'] = nomes_ranking
         df_cust_escritorio  = executar_etl_custodia_escritorio()
         resumo_cust         = calcular_resumo_custodia(df_cust, df_cust_escritorio)
         rank_cust_times     = gerar_ranking_custodia_times(df_cust, df_cust_escritorio)
         rank_cust_grande, rank_cust_pequeno = gerar_ranking_custodia_assessores(df_cust)
+        resumo_cust['num_acima_50mi']  = len(rank_cust_grande)
+        resumo_cust['num_abaixo_50mi'] = len(rank_cust_pequeno)
 
         # 7️⃣  E-mail — Geração do HTML + Envio
         enviar_relatorio(
