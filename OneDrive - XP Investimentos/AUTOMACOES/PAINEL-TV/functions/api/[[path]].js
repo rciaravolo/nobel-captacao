@@ -12,7 +12,7 @@ export async function onRequest(context) {
   }
 
   try {
-    const [[capTotal, capEquipe, capTipo, custTotal, custEquipe, custTipoPessoa, custEquipePfPj],
+    const [[capTotal, capEquipe, capTipo, custTotal, custEquipe, custTipoPessoa, custEquipePfPj, capPorAssessor, custPorAssessor],
            [recRf, recRv, recCoe, recSeguros, recDominion, recCambio, recConsorcio, recFeeFixo, recOfertaFundos, recFundos, recPrev]] =
       await Promise.all([
         Promise.all([
@@ -81,6 +81,32 @@ export async function onRequest(context) {
         GROUP BY equipe
         ORDER BY (SUM(net_em_m)) DESC
       `).all(),
+
+      env.DB.prepare(`
+        SELECT
+          nome_assessor,
+          equipe,
+          SUM(captacao) as total,
+          SUM(CASE WHEN captacao > 0 THEN captacao ELSE 0 END) as positivo,
+          SUM(CASE WHEN captacao < 0 THEN captacao ELSE 0 END) as negativo
+        FROM tb_cap
+        WHERE equipe != 'OPS'
+          AND nome_assessor IS NOT NULL AND nome_assessor != ''
+        GROUP BY nome_assessor, equipe
+        ORDER BY total DESC
+      `).all(),
+
+      env.DB.prepare(`
+        SELECT
+          nome_assessor,
+          equipe,
+          SUM(net_em_m) as custodia
+        FROM tb_positivador
+        WHERE equipe IN ('SMART','RIO PRETO','BRAVO','PRIVATE')
+          AND nome_assessor IS NOT NULL AND nome_assessor != ''
+        GROUP BY nome_assessor, equipe
+        ORDER BY custodia DESC
+      `).all(),
         ]),
         Promise.all([
           env.DB.prepare(`SELECT SUM(receita) as total FROM receita_rf`).first(),
@@ -122,6 +148,7 @@ export async function onRequest(context) {
         data_atualizacao: capTotal.data_atualizacao,
         por_equipe: capEquipe.results,
         por_tipo: capTipo.results,
+        por_assessor: capPorAssessor.results,
       },
       custodia: {
         total: custTotal.total,
@@ -130,6 +157,7 @@ export async function onRequest(context) {
         por_equipe: custEquipe.results,
         por_tipo_pessoa: custTipoPessoa.results,
         equipe_pfpj: custEquipePfPj.results,
+        por_assessor: custPorAssessor.results,
       },
       receita: {
         total: receitaTotal,

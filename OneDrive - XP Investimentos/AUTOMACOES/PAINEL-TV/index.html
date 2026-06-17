@@ -441,6 +441,95 @@
   }
 
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Slides 3, 4, 5: layout de painéis lado a lado ── */
+  #slide-2, #slide-3, #slide-4 {
+    justify-content: flex-start;
+  }
+
+  .slide-panels {
+    display: flex;
+    gap: 56px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .panel-title {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--gold);
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--gold);
+    margin-bottom: 4px;
+    flex-shrink: 0;
+  }
+
+  .panel-title.pos { color: var(--green); border-color: var(--green); }
+  .panel-title.neg { color: var(--red);   border-color: var(--red);   }
+
+  .rank-list {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .rank-row {
+    display: grid;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--border);
+    gap: 0;
+  }
+
+  .rank-row:last-child { border-bottom: none; }
+
+  .rank-pos {
+    font-size: 12px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    padding-right: 6px;
+  }
+
+  .rank-name {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 12px;
+  }
+
+  .rank-equipe {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    padding-right: 12px;
+  }
+
+  .rank-val {
+    font-size: 16px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .rank-val.pos  { color: var(--green); }
+  .rank-val.neg  { color: var(--red); }
+  .rank-val.gold { color: var(--gold); }
 </style>
 </head>
 <body>
@@ -548,6 +637,69 @@
     </div>
   </div>
 
+
+  <!-- SLIDE 3: Rankings por Equipe -->
+  <div class="slide" id="slide-2">
+    <div class="slide-title">Rankings por Equipe</div>
+    <div class="slide-panels">
+
+      <div class="panel">
+        <div class="panel-title">Captação</div>
+        <div class="table-col-header header-equipe" style="margin-top:4px">
+          <span>Equipe</span><span>Líquido</span><span>Entrada</span><span>Saída</span>
+        </div>
+        <div class="table-col-list" id="eq-cap-ranking"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Custódia</div>
+        <div class="table-col-header" style="margin-top:4px; display:grid; grid-template-columns:1fr 170px 120px; padding:0 0 14px; border-bottom:1px solid var(--gold); margin-bottom:4px;">
+          <span style="font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)">Equipe</span>
+          <span style="font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--gold);text-align:right">AUM</span>
+          <span style="font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--gold);text-align:right">Clientes</span>
+        </div>
+        <div class="table-col-list" id="eq-cust-ranking"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SLIDE 4: Captação por Assessor -->
+  <div class="slide" id="slide-3">
+    <div class="slide-title">Captação — Rankings por Assessor</div>
+    <div class="slide-panels">
+
+      <div class="panel">
+        <div class="panel-title pos">Maiores Captadores</div>
+        <div class="rank-list" id="cap-ass-pos"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title neg">Maiores Resgates</div>
+        <div class="rank-list" id="cap-ass-neg"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SLIDE 5: Custódia por Assessor -->
+  <div class="slide" id="slide-4">
+    <div class="slide-title">Custódia — Rankings por Assessor</div>
+    <div class="slide-panels">
+
+      <div class="panel">
+        <div class="panel-title">≥ 50 MM</div>
+        <div class="rank-list" id="cust-ass-grande"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">&lt; 50 MM</div>
+        <div class="rank-list" id="cust-ass-pequeno"></div>
+      </div>
+
+    </div>
+  </div>
+
 </div>
 
 <footer>
@@ -559,6 +711,9 @@
     <div class="slide-dots">
       <div class="dot active" data-i="0"></div>
       <div class="dot" data-i="1"></div>
+      <div class="dot" data-i="2"></div>
+      <div class="dot" data-i="3"></div>
+      <div class="dot" data-i="4"></div>
     </div>
   </div>
 </footer>
@@ -566,7 +721,7 @@
 <script>
 const SLIDE_DURATION = 60;
 const REFRESH_INTERVAL = 5 * 60 * 1000;
-const NUM_SLIDES = 2;
+const NUM_SLIDES = 5;
 
 let currentSlide = 0;
 let slideTimer = null;
@@ -627,6 +782,96 @@ function updateClock() {
 }
 setInterval(updateClock, 1000);
 updateClock();
+
+function tierColor(val) {
+  if (val >= 500e6) return { color: '#ffffff', bg: '#111111' };
+  if (val >= 300e6) return { color: '#B8860B', bg: null };
+  if (val >= 200e6) return { color: '#8A8A8A', bg: null };
+  if (val >= 100e6) return { color: '#CD7F32', bg: null };
+  if (val >= 50e6)  return { color: '#5A9E6F', bg: null };
+  return               { color: '#5B9EC9', bg: null };
+}
+
+function renderEquipes(cap, cust) {
+  var capList = document.getElementById('eq-cap-ranking');
+  capList.innerHTML = '';
+  arr(cap.por_equipe).forEach(function(e) {
+    var val = n(e.total);
+    var row = document.createElement('div');
+    row.className = 'table-col-row row-equipe';
+    row.innerHTML = '<div class="col-name">' + e.equipe + '</div>' +
+      '<div class="col-val ' + (val >= 0 ? 'pos' : 'neg') + '">' + formatBRL(val) + '</div>' +
+      '<div class="col-val pos">' + formatBRL(n(e.positivo)) + '</div>' +
+      '<div class="col-val neg">' + formatBRL(n(e.negativo)) + '</div>';
+    capList.appendChild(row);
+  });
+
+  var custList = document.getElementById('eq-cust-ranking');
+  custList.innerHTML = '';
+  arr(cust.por_equipe).forEach(function(e) {
+    var row = document.createElement('div');
+    row.className = 'table-col-row';
+    row.style.gridTemplateColumns = '1fr 170px 120px';
+    row.innerHTML = '<div class="col-name">' + e.equipe + '</div>' +
+      '<div class="col-val gold">' + formatBRL(n(e.custodia)) + '</div>' +
+      '<div class="col-val muted">' + fmtInt(e.clientes) + '</div>';
+    custList.appendChild(row);
+  });
+}
+
+function renderCapAssessor(capAss) {
+  var all = arr(capAss);
+  var pos = all.filter(function(a) { return n(a.total) > 0; }).slice(0, 10);
+  var neg = all.filter(function(a) { return n(a.total) < 0; })
+               .sort(function(a, b) { return n(a.total) - n(b.total); }).slice(0, 10);
+
+  function buildRows(containerId, items, cls) {
+    var list = document.getElementById(containerId);
+    list.innerHTML = '';
+    items.forEach(function(a, i) {
+      var row = document.createElement('div');
+      row.className = 'rank-row';
+      row.style.gridTemplateColumns = '24px 1fr auto 150px';
+      row.innerHTML =
+        '<span class="rank-pos">' + (i + 1) + '</span>' +
+        '<span class="rank-name">' + (a.nome_assessor || '—') + '</span>' +
+        '<span class="rank-equipe">' + (a.equipe || '') + '</span>' +
+        '<span class="rank-val ' + cls + '">' + formatBRL(n(a.total)) + '</span>';
+      list.appendChild(row);
+    });
+  }
+
+  buildRows('cap-ass-pos', pos, 'pos');
+  buildRows('cap-ass-neg', neg, 'neg');
+}
+
+function renderCustAssessor(custAss) {
+  var all = arr(custAss);
+  var grande  = all.filter(function(a) { return n(a.custodia) >= 50e6; });
+  var pequeno = all.filter(function(a) { return n(a.custodia) <  50e6; });
+
+  function buildRows(containerId, items) {
+    var list = document.getElementById(containerId);
+    list.innerHTML = '';
+    items.forEach(function(a, i) {
+      var val = n(a.custodia);
+      var t = tierColor(val);
+      var valStyle = 'color:' + t.color + (t.bg ? ';background:' + t.bg + ';padding:1px 6px;border-radius:3px' : '');
+      var row = document.createElement('div');
+      row.className = 'rank-row';
+      row.style.gridTemplateColumns = '24px 1fr auto 150px';
+      row.innerHTML =
+        '<span class="rank-pos">' + (i + 1) + '</span>' +
+        '<span class="rank-name">' + (a.nome_assessor || '—') + '</span>' +
+        '<span class="rank-equipe">' + (a.equipe || '') + '</span>' +
+        '<span class="rank-val" style="' + valStyle + '">' + formatBRL(val) + '</span>';
+      list.appendChild(row);
+    });
+  }
+
+  buildRows('cust-ass-grande', grande);
+  buildRows('cust-ass-pequeno', pequeno);
+}
 
 function renderCaptacao(cap) {
   var total = n(cap.total);
@@ -727,10 +972,9 @@ function renderCustodia(cust) {
 
 function renderFooter() {
   if (!dados) return;
-  var refs = [
-    'Ref: ' + formatDate(dados.captacao && dados.captacao.data_ref) + '  ·  Atualizado em ' + formatDate(dados.captacao && dados.captacao.data_atualizacao),
-    'Posição: ' + formatDate(dados.custodia && dados.custodia.data_posicao),
-  ];
+  var capRef  = 'Ref: ' + formatDate(dados.captacao && dados.captacao.data_ref) + '  ·  Atualizado em ' + formatDate(dados.captacao && dados.captacao.data_atualizacao);
+  var custRef = 'Posição: ' + formatDate(dados.custodia && dados.custodia.data_posicao);
+  var refs = [capRef, custRef, capRef + '  ·  ' + custRef, capRef, custRef];
   document.getElementById('footer-ref').textContent = refs[currentSlide] || '—';
 }
 
@@ -764,15 +1008,19 @@ function fetchDados() {
   });
 }
 
+function renderAll() {
+  try { renderCaptacao(obj(dados.captacao)); } catch(e) { console.error('cap:', e); }
+  try { renderCustodia(obj(dados.custodia)); } catch(e) { console.error('cust:', e); }
+  try { renderEquipes(obj(dados.captacao), obj(dados.custodia)); } catch(e) { console.error('equipes:', e); }
+  try { renderCapAssessor(arr(dados.captacao && dados.captacao.por_assessor)); } catch(e) { console.error('cap-ass:', e); }
+  try { renderCustAssessor(arr(dados.custodia && dados.custodia.por_assessor)); } catch(e) { console.error('cust-ass:', e); }
+}
+
 function init() {
   var loadingEl = document.getElementById('loading');
   fetchDados().then(function(data) {
     dados = data;
-    try { renderCaptacao(obj(dados.captacao)); } catch(e) { console.error('cap:', e); }
-    try { renderCustodia(obj(dados.custodia)); } catch(e) {
-      loadingEl.innerHTML = '<span style="color:#f87171;font-size:12px">Erro: ' + e.message + '</span>';
-      setTimeout(init, 30000); return;
-    }
+    renderAll();
     loadingEl.style.display = 'none';
     goToSlide(0);
   }).catch(function(e) {
@@ -784,8 +1032,7 @@ function init() {
 setInterval(function() {
   fetchDados().then(function(data) {
     dados = data;
-    try { renderCaptacao(obj(dados.captacao)); } catch(e) {}
-    try { renderCustodia(obj(dados.custodia)); } catch(e) {}
+    renderAll();
     renderFooter();
   }).catch(function() {});
 }, REFRESH_INTERVAL);
