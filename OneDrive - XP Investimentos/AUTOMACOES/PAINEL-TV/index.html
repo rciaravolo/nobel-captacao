@@ -443,7 +443,7 @@
   @keyframes spin { to { transform: rotate(360deg); } }
 
   /* ── Slides 3, 4, 5: layout de painéis lado a lado ── */
-  #slide-2, #slide-3 {
+  #slide-3, #slide-4 {
     justify-content: flex-start;
   }
 
@@ -638,8 +638,20 @@
   </div>
 
 
-  <!-- SLIDE 3: Captação por Assessor -->
+  <!-- SLIDE 3: Receita por Classe de Produto -->
   <div class="slide" id="slide-2">
+    <div class="slide-title">Receita por Classe de Produto</div>
+    <div style="text-align:center;margin-bottom:16px;flex-shrink:0;">
+      <div class="cap-hero-label">Receita Total</div>
+      <div class="cap-hero-value gold" id="rec-total" style="margin-bottom:0;">—</div>
+    </div>
+    <div id="rec-bubbles-wrap" style="flex:1;min-height:0;width:100%;position:relative;">
+      <svg id="rec-bubbles" style="width:100%;height:100%;display:block;"></svg>
+    </div>
+  </div>
+
+  <!-- SLIDE 4: Captação por Assessor -->
+  <div class="slide" id="slide-3">
     <div class="slide-title">Captação — Rankings por Assessor</div>
     <div class="slide-panels">
 
@@ -656,8 +668,8 @@
     </div>
   </div>
 
-  <!-- SLIDE 4: Custódia por Assessor -->
-  <div class="slide" id="slide-3">
+  <!-- SLIDE 5: Custódia por Assessor -->
+  <div class="slide" id="slide-4">
     <div class="slide-title">Custódia — Rankings por Assessor</div>
     <div class="slide-panels">
 
@@ -687,6 +699,7 @@
       <div class="dot" data-i="1"></div>
       <div class="dot" data-i="2"></div>
       <div class="dot" data-i="3"></div>
+      <div class="dot" data-i="4"></div>
     </div>
   </div>
 </footer>
@@ -694,7 +707,7 @@
 <script>
 const SLIDE_DURATION = 60;
 const REFRESH_INTERVAL = 5 * 60 * 1000;
-const NUM_SLIDES = 4;
+const NUM_SLIDES = 5;
 
 let currentSlide = 0;
 let slideTimer = null;
@@ -755,6 +768,158 @@ function updateClock() {
 }
 setInterval(updateClock, 1000);
 updateClock();
+
+function formatBRLShort(val) {
+  val = n(val);
+  if (val >= 1e6) return 'R$ ' + (val / 1e6).toFixed(1) + 'M';
+  if (val >= 1e3) return 'R$ ' + Math.round(val / 1e3) + 'k';
+  return formatBRL(val);
+}
+
+function renderReceita(rec) {
+  document.getElementById('rec-total').textContent = formatBRL(n(rec.total));
+  var items = arr(rec.por_classe).filter(function(i) { return n(i.total) > 0; });
+  if (!items.length) return;
+
+  var wrap = document.getElementById('rec-bubbles-wrap');
+  var W = wrap.offsetWidth, H = wrap.offsetHeight;
+  if (W < 10 || H < 10) return;
+
+  var N = items.length;
+  var maxVal = Math.max.apply(null, items.map(function(i) { return n(i.total); }));
+  var cols = Math.ceil(Math.sqrt(N * W / H));
+  var rows = Math.ceil(N / cols);
+  var maxR = Math.min(W / cols, H / rows) * 0.43;
+  var minR = Math.max(18, maxR * 0.22);
+  var pad  = 8;
+  var yScale = H / W;
+
+  var circles = items.slice()
+    .sort(function(a, b) { return n(b.total) - n(a.total); })
+    .map(function(item) {
+      var ratio = Math.sqrt(n(item.total) / maxVal);
+      var r = minR + (maxR - minR) * ratio;
+      return { classe: item.classe, total: n(item.total), r: r, ratio: ratio, x: 0, y: 0, baseR: r };
+    });
+
+  function tryPack(sc) {
+    var placed = [];
+    for (var ci = 0; ci < circles.length; ci++) {
+      var c = circles[ci];
+      var r = Math.max(minR * 0.5, c.baseR * sc);
+      var found = false;
+      var limit = Math.max(W, H);
+      for (var dist = 0; dist <= limit && !found; dist += 2) {
+        var nSteps = Math.max(8, Math.round(2 * Math.PI * Math.max(dist, 4) / 3));
+        for (var s = 0; s < nSteps && !found; s++) {
+          var a = (s / nSteps) * 2 * Math.PI;
+          var x = W / 2 + dist * Math.cos(a);
+          var y = H / 2 + dist * Math.sin(a) * yScale;
+          if (x - r < 0 || x + r > W || y - r < 0 || y + r > H) continue;
+          var ok = true;
+          for (var pi = 0; pi < placed.length && ok; pi++) {
+            var p = placed[pi];
+            var minD = p.r + r + pad;
+            if ((x - p.x) * (x - p.x) + (y - p.y) * (y - p.y) < minD * minD) ok = false;
+          }
+          if (ok) { c.x = x; c.y = y; c.r = r; placed.push(c); found = true; }
+        }
+      }
+      if (!found) return false;
+    }
+    return true;
+  }
+
+  var scale = 1.0, packed = false;
+  while (scale > 0.15) { if (tryPack(scale)) { packed = true; break; } scale -= 0.04; }
+
+  if (!packed) {
+    var areaSum = circles.reduce(function(s, c) { return s + Math.PI * c.baseR * c.baseR; }, 0);
+    var sc = Math.min(1, Math.sqrt(W * H * 0.55 / areaSum));
+    circles.forEach(function(c) { c.r = Math.max(minR * 0.4, c.baseR * sc); });
+    var half = Math.ceil(N / 2);
+    function placeRow(arr, cy) {
+      var totalW = arr.reduce(function(s, c) { return s + c.r * 2 + pad; }, -pad);
+      var x = (W - totalW) / 2;
+      arr.forEach(function(c) { x += c.r; c.x = x; c.y = cy; x += c.r + pad; });
+    }
+    placeRow(circles.slice(0, half), half < N ? H * 0.33 : H * 0.5);
+    if (half < N) placeRow(circles.slice(half), H * 0.68);
+  }
+
+  var svg = document.getElementById('rec-bubbles');
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+  svg.setAttribute('overflow', 'hidden');
+  svg.innerHTML = '';
+  var ns = 'http://www.w3.org/2000/svg';
+  var defs = document.createElementNS(ns, 'defs');
+
+  var fBlur = document.createElementNS(ns, 'filter');
+  fBlur.setAttribute('id', 'bblur');
+  fBlur.setAttribute('x', '-50%'); fBlur.setAttribute('y', '-50%');
+  fBlur.setAttribute('width', '200%'); fBlur.setAttribute('height', '200%');
+  var gb = document.createElementNS(ns, 'feGaussianBlur');
+  gb.setAttribute('stdDeviation', '7');
+  fBlur.appendChild(gb);
+  defs.appendChild(fBlur);
+
+  circles.forEach(function(c, i) {
+    var baseL = Math.round(28 + c.ratio * 44);
+    var baseSat = Math.round(80 - c.ratio * 18);
+    var hiL = Math.min(94, baseL + 54);
+    var darkL = Math.max(6, baseL - 28);
+    var rg = document.createElementNS(ns, 'radialGradient');
+    rg.setAttribute('id', 'rg' + i); rg.setAttribute('cx', '35%'); rg.setAttribute('cy', '28%');
+    rg.setAttribute('r', '72%'); rg.setAttribute('fx', '28%'); rg.setAttribute('fy', '20%');
+    [[0,'hsl(42,50%,'+hiL+'%)'],[42,'hsl(42,'+baseSat+'%,'+baseL+'%)'],[100,'hsl(34,'+Math.round(baseSat*0.72)+'%,'+darkL+'%)']].forEach(function(p){
+      var s=document.createElementNS(ns,'stop'); s.setAttribute('offset',p[0]+'%'); s.setAttribute('stop-color',p[1]); rg.appendChild(s);
+    });
+    defs.appendChild(rg);
+    var rim = document.createElementNS(ns, 'radialGradient');
+    rim.setAttribute('id', 'rim' + i); rim.setAttribute('cx', '50%'); rim.setAttribute('cy', '50%'); rim.setAttribute('r', '50%');
+    [[58,'rgba(0,0,0,0)'],[100,'rgba(0,0,0,0.40)']].forEach(function(p){
+      var s=document.createElementNS(ns,'stop'); s.setAttribute('offset',p[0]+'%'); s.setAttribute('stop-color',p[1]); rim.appendChild(s);
+    });
+    defs.appendChild(rim);
+    var cp = document.createElementNS(ns, 'clipPath'); cp.setAttribute('id', 'cp' + i);
+    var cpC = document.createElementNS(ns, 'circle'); cpC.setAttribute('cx', c.x); cpC.setAttribute('cy', c.y); cpC.setAttribute('r', c.r * 0.88);
+    cp.appendChild(cpC); defs.appendChild(cp);
+  });
+  svg.appendChild(defs);
+
+  circles.forEach(function(c, i) {
+    var baseL = Math.round(28 + c.ratio * 44);
+    var ink = baseL > 52 ? '#1a0f00' : '#fceeb5';
+    var sh = document.createElementNS(ns, 'circle');
+    sh.setAttribute('cx', c.x+3); sh.setAttribute('cy', c.y+8); sh.setAttribute('r', c.r*0.85);
+    sh.setAttribute('fill', 'rgba(0,0,0,0.50)'); sh.setAttribute('filter', 'url(#bblur)');
+    svg.appendChild(sh);
+    var sphere = document.createElementNS(ns, 'circle');
+    sphere.setAttribute('cx', c.x); sphere.setAttribute('cy', c.y); sphere.setAttribute('r', c.r);
+    sphere.setAttribute('fill', 'url(#rg'+i+')'); svg.appendChild(sphere);
+    var rimC = document.createElementNS(ns, 'circle');
+    rimC.setAttribute('cx', c.x); rimC.setAttribute('cy', c.y); rimC.setAttribute('r', c.r);
+    rimC.setAttribute('fill', 'url(#rim'+i+')'); svg.appendChild(rimC);
+    var showVal = c.r > 28;
+    var fs1 = Math.max(11, Math.min(48, c.r*0.46));
+    var fs2 = Math.max(9, Math.min(34, c.r*0.32));
+    var oy = showVal ? -(fs1*0.52) : 0;
+    var g = document.createElementNS(ns, 'g'); g.setAttribute('clip-path', 'url(#cp'+i+')');
+    var t1 = document.createElementNS(ns, 'text');
+    t1.setAttribute('x', c.x); t1.setAttribute('y', c.y+oy);
+    t1.setAttribute('text-anchor','middle'); t1.setAttribute('dominant-baseline','middle');
+    t1.setAttribute('fill', ink); t1.setAttribute('font-size', fs1+'px'); t1.setAttribute('font-weight','700');
+    t1.setAttribute('font-family',"'Segoe UI',system-ui,sans-serif"); t1.textContent = c.classe; g.appendChild(t1);
+    if (showVal) {
+      var t2 = document.createElementNS(ns, 'text');
+      t2.setAttribute('x', c.x); t2.setAttribute('y', c.y+oy+fs1+3);
+      t2.setAttribute('text-anchor','middle'); t2.setAttribute('dominant-baseline','middle');
+      t2.setAttribute('fill', ink); t2.setAttribute('font-size', fs2+'px');
+      t2.setAttribute('font-family',"'Segoe UI',system-ui,sans-serif"); t2.textContent = formatBRLShort(c.total); g.appendChild(t2);
+    }
+    svg.appendChild(g);
+  });
+}
 
 function tierColor(val) {
   if (val >= 500e6) return { color: '#ffffff', bg: '#111111' };
@@ -947,7 +1112,7 @@ function renderFooter() {
   if (!dados) return;
   var capRef  = 'Ref: ' + formatDate(dados.captacao && dados.captacao.data_ref) + '  ·  Atualizado em ' + formatDate(dados.captacao && dados.captacao.data_atualizacao);
   var custRef = 'Posição: ' + formatDate(dados.custodia && dados.custodia.data_posicao);
-  var refs = [capRef, custRef, capRef, custRef];
+  var refs = [capRef, custRef, '—', capRef, custRef];
   document.getElementById('footer-ref').textContent = refs[currentSlide] || '—';
 }
 
@@ -984,6 +1149,7 @@ function fetchDados() {
 function renderAll() {
   try { renderCaptacao(obj(dados.captacao)); } catch(e) { console.error('cap:', e); }
   try { renderCustodia(obj(dados.custodia)); } catch(e) { console.error('cust:', e); }
+  try { renderReceita(obj(dados.receita)); } catch(e) { console.error('rec:', e); }
   try { renderCapAssessor(arr(dados.captacao && dados.captacao.por_assessor)); } catch(e) { console.error('cap-ass:', e); }
   try { renderCustAssessor(arr(dados.custodia && dados.custodia.por_assessor)); } catch(e) { console.error('cust-ass:', e); }
 }
