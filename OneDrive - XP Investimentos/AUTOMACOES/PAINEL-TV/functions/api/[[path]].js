@@ -90,12 +90,13 @@ export async function onRequest(context) {
           SUM(CASE WHEN captacao > 0 THEN captacao ELSE 0 END) as positivo,
           SUM(CASE WHEN captacao < 0 THEN captacao ELSE 0 END) as negativo
         FROM tb_cap
-        WHERE id_assessor IN (
-          'A26112','A53211','A27823','A20949','A32005','A24356','A24984','A73259','A26918','A74348',
-          'A65954','A21351','A65997','A65648','A22679','A25771','A65646','A21878','Private25','A69286',
-          'A43705','A72984','A56706','A73214','A72555',
-          'A95945','A44655','A74811','A54062','A26852','A32561','A23591','A96628'
-        )
+        WHERE equipe IN ('SMART','RIO PRETO','BRAVO','PRIVATE')
+          AND id_assessor IN (
+            'A26112','A53211','A27823','A20949','A32005','A24356','A24984','A73259','A26918','A74348',
+            'A65954','A21351','A65997','A65648','A22679','A25771','A65646','A21878','Private25','A69286',
+            'A43705','A72984','A56706','A73214','A72555',
+            'A95945','A44655','A74811','A54062','A26852','A32561','A23591','A96628'
+          )
         GROUP BY nome_assessor, equipe
         ORDER BY total DESC
       `).all(),
@@ -106,12 +107,13 @@ export async function onRequest(context) {
           equipe,
           SUM(net_em_m) as custodia
         FROM tb_positivador
-        WHERE id_assessor IN (
-          'A26112','A53211','A27823','A20949','A32005','A24356','A24984','A73259','A26918','A74348',
-          'A65954','A21351','A65997','A65648','A22679','A25771','A65646','A21878','Private25','A69286',
-          'A43705','A72984','A56706','A73214','A72555',
-          'A95945','A44655','A74811','A54062','A26852','A32561','A23591','A96628'
-        )
+        WHERE equipe IN ('SMART','RIO PRETO','BRAVO','PRIVATE')
+          AND id_assessor IN (
+            'A26112','A53211','A27823','A20949','A32005','A24356','A24984','A73259','A26918','A74348',
+            'A65954','A21351','A65997','A65648','A22679','A25771','A65646','A21878','Private25','A69286',
+            'A43705','A72984','A56706','A73214','A72555',
+            'A95945','A44655','A74811','A54062','A26852','A32561','A23591','A96628'
+          )
         GROUP BY nome_assessor, equipe
         ORDER BY custodia DESC
       `).all(),
