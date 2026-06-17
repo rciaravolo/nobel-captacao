@@ -92,6 +92,7 @@ export async function onRequest(context) {
         FROM tb_cap
         WHERE equipe != 'OPS'
           AND nome_assessor IS NOT NULL AND nome_assessor != ''
+          AND id_assessor NOT IN ('A69243','PRECAS','A72441','A26496','A20345','A26085','FINDER01','A51250')
         GROUP BY nome_assessor, equipe
         ORDER BY total DESC
       `).all(),
@@ -104,6 +105,7 @@ export async function onRequest(context) {
         FROM tb_positivador
         WHERE equipe IN ('SMART','RIO PRETO','BRAVO','PRIVATE')
           AND nome_assessor IS NOT NULL AND nome_assessor != ''
+          AND id_assessor NOT IN ('A69243','PRECAS','A72441','A26496','A20345','A26085','FINDER01','A51250')
         GROUP BY nome_assessor, equipe
         ORDER BY custodia DESC
       `).all(),

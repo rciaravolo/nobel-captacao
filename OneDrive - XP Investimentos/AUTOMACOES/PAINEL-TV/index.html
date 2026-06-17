@@ -443,7 +443,7 @@
   @keyframes spin { to { transform: rotate(360deg); } }
 
   /* ── Slides 3, 4, 5: layout de painéis lado a lado ── */
-  #slide-2, #slide-3, #slide-4 {
+  #slide-2, #slide-3 {
     justify-content: flex-start;
   }
 
@@ -638,34 +638,8 @@
   </div>
 
 
-  <!-- SLIDE 3: Rankings por Equipe -->
+  <!-- SLIDE 3: Captação por Assessor -->
   <div class="slide" id="slide-2">
-    <div class="slide-title">Rankings por Equipe</div>
-    <div class="slide-panels">
-
-      <div class="panel">
-        <div class="panel-title">Captação</div>
-        <div class="table-col-header header-equipe" style="margin-top:4px">
-          <span>Equipe</span><span>Líquido</span><span>Entrada</span><span>Saída</span>
-        </div>
-        <div class="table-col-list" id="eq-cap-ranking"></div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-title">Custódia</div>
-        <div class="table-col-header" style="margin-top:4px; display:grid; grid-template-columns:1fr 170px 120px; padding:0 0 14px; border-bottom:1px solid var(--gold); margin-bottom:4px;">
-          <span style="font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)">Equipe</span>
-          <span style="font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--gold);text-align:right">AUM</span>
-          <span style="font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--gold);text-align:right">Clientes</span>
-        </div>
-        <div class="table-col-list" id="eq-cust-ranking"></div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- SLIDE 4: Captação por Assessor -->
-  <div class="slide" id="slide-3">
     <div class="slide-title">Captação — Rankings por Assessor</div>
     <div class="slide-panels">
 
@@ -682,8 +656,8 @@
     </div>
   </div>
 
-  <!-- SLIDE 5: Custódia por Assessor -->
-  <div class="slide" id="slide-4">
+  <!-- SLIDE 4: Custódia por Assessor -->
+  <div class="slide" id="slide-3">
     <div class="slide-title">Custódia — Rankings por Assessor</div>
     <div class="slide-panels">
 
@@ -713,7 +687,6 @@
       <div class="dot" data-i="1"></div>
       <div class="dot" data-i="2"></div>
       <div class="dot" data-i="3"></div>
-      <div class="dot" data-i="4"></div>
     </div>
   </div>
 </footer>
@@ -721,7 +694,7 @@
 <script>
 const SLIDE_DURATION = 60;
 const REFRESH_INTERVAL = 5 * 60 * 1000;
-const NUM_SLIDES = 5;
+const NUM_SLIDES = 4;
 
 let currentSlide = 0;
 let slideTimer = null;
@@ -974,7 +947,7 @@ function renderFooter() {
   if (!dados) return;
   var capRef  = 'Ref: ' + formatDate(dados.captacao && dados.captacao.data_ref) + '  ·  Atualizado em ' + formatDate(dados.captacao && dados.captacao.data_atualizacao);
   var custRef = 'Posição: ' + formatDate(dados.custodia && dados.custodia.data_posicao);
-  var refs = [capRef, custRef, capRef + '  ·  ' + custRef, capRef, custRef];
+  var refs = [capRef, custRef, capRef, custRef];
   document.getElementById('footer-ref').textContent = refs[currentSlide] || '—';
 }
 
@@ -1011,7 +984,6 @@ function fetchDados() {
 function renderAll() {
   try { renderCaptacao(obj(dados.captacao)); } catch(e) { console.error('cap:', e); }
   try { renderCustodia(obj(dados.custodia)); } catch(e) { console.error('cust:', e); }
-  try { renderEquipes(obj(dados.captacao), obj(dados.custodia)); } catch(e) { console.error('equipes:', e); }
   try { renderCapAssessor(arr(dados.captacao && dados.captacao.por_assessor)); } catch(e) { console.error('cap-ass:', e); }
   try { renderCustAssessor(arr(dados.custodia && dados.custodia.por_assessor)); } catch(e) { console.error('cust-ass:', e); }
 }
