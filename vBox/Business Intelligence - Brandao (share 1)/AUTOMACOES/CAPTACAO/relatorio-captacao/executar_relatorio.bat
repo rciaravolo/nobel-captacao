@@ -1,9 +1,10 @@
 @echo off
 chcp 65001 >nul
+setlocal
 
-:: ── ENCODING FIX: força Python a usar UTF-8 mesmo ao redirecionar stdout ──
 set PYTHONUTF8=1
 set PYTHONIOENCODING=utf-8
+set OPENBLAS_NUM_THREADS=1
 
 cd /d "%~dp0"
 
@@ -11,20 +12,17 @@ echo ============================================================ >> logs\task_s
 echo EXECUCAO INICIADA: %date% %time% >> logs\task_scheduler.log 2>&1
 echo ============================================================ >> logs\task_scheduler.log 2>&1
 
-:: ── Tenta usar o launcher 'py' (mais robusto no Agendador de Tarefas) ──
-:: ── Se não encontrar, usa 'python' diretamente ──
-where py >nul 2>&1
-if %ERRORLEVEL% EQU 0 (
-    py main.py >> logs\task_scheduler.log 2>&1
-) else (
-    python main.py >> logs\task_scheduler.log 2>&1
-)
+:: Usa Python 3.14 diretamente (caminho fixo, robusto no Agendador de Tarefas)
+C:\Python314\python.exe main.py >> logs\task_scheduler.log 2>&1
+set EXIT_CODE=%ERRORLEVEL%
 
-if %ERRORLEVEL% NEQ 0 (
-    echo ERRO: Script falhou com codigo %ERRORLEVEL% >> logs\task_scheduler.log 2>&1
+if %EXIT_CODE% NEQ 0 (
+    echo ERRO: Script falhou com codigo %EXIT_CODE% >> logs\task_scheduler.log 2>&1
 ) else (
     echo SUCESSO: Script executado com sucesso >> logs\task_scheduler.log 2>&1
 )
 
 echo ============================================================ >> logs\task_scheduler.log 2>&1
 echo. >> logs\task_scheduler.log 2>&1
+
+exit /b %EXIT_CODE%

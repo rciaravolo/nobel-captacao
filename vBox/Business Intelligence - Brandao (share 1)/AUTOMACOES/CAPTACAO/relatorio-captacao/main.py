@@ -1,5 +1,7 @@
-import logging
 import os
+os.environ.setdefault('OPENBLAS_NUM_THREADS', '1')
+
+import logging
 import sys
 from datetime import datetime
 
