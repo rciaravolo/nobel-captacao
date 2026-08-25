@@ -51,19 +51,18 @@ jobs:
           # ── Assessores (arquivo no repo) ───────────────────────
           ARQUIVO_ASSESSORES: "assessor.json"
 
-          # ── Destinatário: padrão = time completo; teste = só você ──
-          EMAIL_DESTINATARIO: ${{ inputs.modo_teste && vars.EMAIL_TESTE || '' }}
+          # ── Destinatário: padrão = time completo; teste = só BI ──
+          EMAIL_DESTINATARIO: ${{ inputs.modo_teste && 'bi@nobelcapital.com.br' || '' }}
 
-          # ── Modo email: SMTP (sem Outlook) ──
-          EMAIL_MODO: "smtp"
+          # ── Modo email: Microsoft Graph API (SMTP AUTH bloqueado no tenant) ──
+          EMAIL_MODO: "graph"
 
-          # ── Credenciais SMTP — configure nos Secrets do GitHub ──
-          # Vá em: Settings > Secrets and variables > Actions > New repository secret
-          SMTP_HOST: ${{ secrets.SMTP_HOST }}
-          SMTP_PORT: ${{ secrets.SMTP_PORT }}
-          SMTP_USER: ${{ secrets.SMTP_USER }}
-          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
-          SMTP_FROM: ${{ secrets.SMTP_FROM }}
+          # ── Credenciais Graph — configure nos Secrets do GitHub ──
+          # Ver: docs/PEDIDO_TI_ENTRA_ID.md
+          GRAPH_CLIENT_ID:     ${{ secrets.GRAPH_CLIENT_ID }}
+          GRAPH_TENANT_ID:     ${{ secrets.GRAPH_TENANT_ID }}
+          GRAPH_CLIENT_SECRET: ${{ secrets.GRAPH_CLIENT_SECRET }}
+          GRAPH_FROM:          ${{ secrets.GRAPH_FROM }}
 
           # ── Força UTF-8 ──
           PYTHONUTF8: "1"

@@ -1,7 +1,7 @@
 from datetime import datetime
 
 # ── CAMINHOS DAS BASES ──────────────────────────────────────
-import glob, os as _os
+import glob, os as _os, unicodedata as _ud
 
 # Suporte a variável de ambiente para execução em nuvem (GitHub Actions, etc.)
 # Localmente usa o caminho padrão; na nuvem, defina CAMINHO_BASE no ambiente.
@@ -10,14 +10,21 @@ CAMINHO_BASE    = _os.environ.get(
     r'C:\Users\Usuário\vBox\ONE PAGE'
 )
 
-def _glob_arquivo(pasta, padrao):
-    resultados = [f for f in glob.glob(_os.path.join(pasta, padrao)) if not _os.path.basename(f).startswith('~$')]
-    # Filtrar para excluir arquivos com "Copia" no nome
-    resultados = [f for f in resultados if 'Copia' not in _os.path.basename(f)]
-    return resultados[0] if resultados else None
+def _arquivo_exato(pasta, nome):
+    # Nomes fixos e exatos — usuário mantém backups com datas no nome (ex.: "... - Julho.xlsx"),
+    # então NUNCA usar wildcard: exigir match exato para não pegar arquivo arquivado.
+    # Windows/OneDrive pode armazenar nomes em NFD; comparamos normalizado (NFC) contra listdir.
+    alvo = _ud.normalize('NFC', nome)
+    try:
+        for real in _os.listdir(pasta):
+            if _ud.normalize('NFC', real) == alvo:
+                return _os.path.join(pasta, real)
+    except FileNotFoundError:
+        pass
+    return None
 
-ARQUIVO_1       = _glob_arquivo(CAMINHO_BASE, '*BASES ONE PAGE*.xlsx')
-ARQUIVO_2       = _glob_arquivo(CAMINHO_BASE, 'ONE PAGE - ATUAL_V2.xlsm')
+ARQUIVO_1       = _arquivo_exato(CAMINHO_BASE, 'ATUALIZAÇÃO - BASES ONE PAGE.xlsx')
+ARQUIVO_2       = _arquivo_exato(CAMINHO_BASE, 'ONE PAGE - ATUAL_V2.xlsm')
 SHEET_BASE1     = 'TB_CAP'            # sheet da Base 1 (transações diárias)
 SHEET_BASE2     = 'CAPTAÇÃO ATUAL'    # sheet da Base 2 (transações diárias)
 SHEET_HISTORICO = 'HISTÓRICO CAP'     # sheet com dados acumulados mensais
@@ -40,13 +47,13 @@ CUST_LIMITE_MI  = 50_000_000          # separador >=50mi vs <50mi
 # ── ASSESSORES ATIVOS ────────────────────────────────────
 ARQUIVO_ASSESSORES = _os.environ.get(
     'ARQUIVO_ASSESSORES',
-    r'C:\Users\Usuário\vBox\Business Intelligence - Brandao (share 1)\AUTOMACOES\CAPTACAO\relatorio-captacao\assessor.json'
+    _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), 'assessor.json')
 )
 
 # ── REGRAS DE NEGÓCIO ─────────────────────────────────────────
 EQUIPES_EXCLUIDAS  = ['OPS']          # legado, mantido por compatibilidade
 EQUIPES_PERMITIDAS = [                # unicas equipes exibidas no relatorio
-    'PRIVATE', 'BRAVO', 'RIO PRETO', 'SMART',
+    'PRIVATE', 'BRAVO', 'SMART',
 ]
 CONSIDERAR_ZERADOS = False
 
@@ -94,9 +101,9 @@ MODO_TESTE_EMAIL = False   # True = imprime HTML no console, não envia
 LOG_LEVEL        = 'INFO'
 
 # ── EMAIL — MODO DE ENVIO ────────────────────────────────────────────────────
-# 'outlook' → usa Outlook via win32com (apenas local/Windows com Outlook instalado)
-# 'smtp'    → usa SMTP direto (funciona em nuvem, GitHub Actions, qualquer SO)
-# Para execução em nuvem, defina EMAIL_MODO=smtp nas variáveis de ambiente.
+# 'outlook' → Outlook via win32com (apenas local/Windows com Outlook instalado)
+# 'smtp'    → SMTP direto (bloqueado no M365 desde 2022 — usar graph)
+# 'graph'   → Microsoft Graph API (recomendado para nuvem/GitHub Actions)
 EMAIL_MODO = _os.environ.get('EMAIL_MODO', 'outlook')
 
 # ── EMAIL — SMTP (Office 365 ou Gmail) ─────────────────────────────────────
@@ -106,3 +113,12 @@ SMTP_PORT        = int(_os.environ.get('SMTP_PORT', '587') or '587')
 SMTP_USER        = _os.environ.get('SMTP_USER',     '')   # ex: relatorio@nobelcapital.com.br
 SMTP_PASSWORD    = _os.environ.get('SMTP_PASSWORD', '')   # senha ou app-password
 SMTP_FROM        = _os.environ.get('SMTP_FROM',     SMTP_USER)
+
+# ── EMAIL — MICROSOFT GRAPH API ──────────────────────────────────────────────
+# Para uso em nuvem quando o tenant M365 bloqueia SMTP AUTH básico.
+# Requer app registrada no Entra ID com permissão Mail.Send (application).
+# Ver: docs/PEDIDO_TI_ENTRA_ID.md
+GRAPH_CLIENT_ID     = _os.environ.get('GRAPH_CLIENT_ID',     '')
+GRAPH_TENANT_ID     = _os.environ.get('GRAPH_TENANT_ID',     '')
+GRAPH_CLIENT_SECRET = _os.environ.get('GRAPH_CLIENT_SECRET', '')
+GRAPH_FROM          = _os.environ.get('GRAPH_FROM',          '')   # mailbox remetente
