@@ -26,3 +26,8 @@ env/
 
 # Previews gerados (output temporário)
 preview_*.html
+
+# Pastas de outros compartilhamentos/projetos — nunca devem entrar neste repo
+# (histórico: PR #1 puxou cópias inteiras de outros projetos por engano)
+/vBox/
+/OneDrive - XP Investimentos/
