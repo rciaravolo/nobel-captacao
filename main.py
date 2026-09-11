@@ -1,5 +1,13 @@
-import logging
 import os
+os.environ.setdefault('OPENBLAS_NUM_THREADS', '1')
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env'))
+except ImportError:
+    pass
+
+import logging
 import sys
 from datetime import datetime
 
@@ -85,6 +93,8 @@ def main():
         resumo_cust         = calcular_resumo_custodia(df_cust, df_cust_escritorio)
         rank_cust_times     = gerar_ranking_custodia_times(df_cust, df_cust_escritorio)
         rank_cust_grande, rank_cust_pequeno = gerar_ranking_custodia_assessores(df_cust)
+        resumo_cust['num_acima_50mi']  = len(rank_cust_grande)
+        resumo_cust['num_abaixo_50mi'] = len(rank_cust_pequeno)
 
         # 7️⃣  E-mail — Geração do HTML + Envio
         enviar_relatorio(

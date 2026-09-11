@@ -7,6 +7,13 @@
     "mail_assessor": "argos.sasso@nobelcapital.com.br"
   },
   {
+    "id_assessor": "A43705",
+    "nome_assessor": "Cristiane Mellote",
+    "equipe": "BRAVO",
+    "status": "Ativo",
+    "mail_assessor": "cristiane.mellote@nobelcapital.com.br"
+  },
+  {
     "id_assessor": "A53211",
     "nome_assessor": "Diana Frajtag",
     "equipe": "BRAVO",
@@ -19,6 +26,13 @@
     "equipe": "BRAVO",
     "status": "Ativo",
     "mail_assessor": "diogo.reinoso@nobelcapital.com.br"
+  },
+  {
+    "id_assessor": "A56706",
+    "nome_assessor": "Evandro Delduque",
+    "equipe": "BRAVO",
+    "status": "Ativo",
+    "mail_assessor": "evandro.delduque@nobelcapital.com.br"
   },
   {
     "id_assessor": "A20949",
@@ -76,14 +90,6 @@
     "equipe": "BRAVO",
     "status": "Ativo",
     "mail_assessor": "simone.augusto@nobelcapital.com.br"
-  },
-  {
-    "id_assessor": "PRECAS",
-    "nome_assessor": "Precatório",
-    "equipe": "PRECATORIO",
-    "status": "Ativo",
-    "mail_assessor": "",
-    "incluir_ranking": false
   },
   {
     "id_assessor": "A65954",
@@ -160,6 +166,13 @@
     "incluir_ranking": false
   },
   {
+    "id_assessor": "A73214",
+    "nome_assessor": "Marcelo Almeida",
+    "equipe": "PRIVATE",
+    "status": "Ativo",
+    "mail_assessor": "marcelo.almeida@nobelcapital.com.br"
+  },
+  {
     "id_assessor": "A65646",
     "nome_assessor": "Marcelo Gaspar",
     "equipe": "PRIVATE",
@@ -186,41 +199,6 @@
     "equipe": "PRIVATE",
     "status": "Ativo",
     "mail_assessor": "vitor.baqueiro@nobelcapital.com.br"
-  },
-  {
-    "id_assessor": "A43705",
-    "nome_assessor": "Cristiane Mellote",
-    "equipe": "RIO PRETO",
-    "status": "Ativo",
-    "mail_assessor": "cristiane.mellote@nobelcapital.com.br"
-  },
-  {
-    "id_assessor": "A72984",
-    "nome_assessor": "Elise Okayama",
-    "equipe": "RIO PRETO",
-    "status": "Ativo",
-    "mail_assessor": "elise.okayama@nobelcapital.com.br"
-  },
-  {
-    "id_assessor": "A56706",
-    "nome_assessor": "Evandro Delduque",
-    "equipe": "RIO PRETO",
-    "status": "Ativo",
-    "mail_assessor": "evandro.delduque@nobelcapital.com.br"
-  },
-  {
-    "id_assessor": "A73214",
-    "nome_assessor": "Marcelo Almeida",
-    "equipe": "RIO PRETO",
-    "status": "Ativo",
-    "mail_assessor": "marcelo.almeida@nobelcapital.com.br"
-  },
-  {
-    "id_assessor": "A72555",
-    "nome_assessor": "Viviane Fabbri",
-    "equipe": "RIO PRETO",
-    "status": "Ativo",
-    "mail_assessor": "viviane.fabbri@nobelcapital.com.br"
   },
   {
     "id_assessor": "A95945",

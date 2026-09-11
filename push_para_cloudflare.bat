@@ -1,7 +1,7 @@
 @echo off
 :: ============================================================
 :: push_para_cloudflare.bat
-:: Envia TB_CAP e TB_POSITIVADOR para o Cloudflare D1.
+:: Envia TB_CAP e TB_DIVERSIFICADOR para o Cloudflare D1.
 ::
 :: Agendar via Windows Task Scheduler para rodar:
 ::   - 10:00 (atualização da manhã)

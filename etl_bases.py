@@ -51,19 +51,18 @@ def _pull_tb_cap_postgres() -> tuple[pd.DataFrame, str]:
         conn.close()
 
 
-def _pull_tb_positivador_postgres() -> pd.DataFrame:
-    """Lê captacao.tb_positivador do PostgreSQL."""
-    logger.info("  [PG] Lendo captacao.tb_positivador...")
+def _pull_tb_diversificador_postgres() -> pd.DataFrame:
+    """Lê captacao.tb_diversificador do PostgreSQL."""
+    logger.info("  [PG] Lendo captacao.tb_diversificador...")
     conn = _pg_conn()
     try:
         df = pd.read_sql("""
-            SELECT assessor  AS "Assessor",
-                   nucleo    AS "Núcleo",
-                   net_em_m  AS "Net Em M",
-                   status    AS "Status"
-            FROM captacao.tb_positivador
+            SELECT assessor AS "Assessor",
+                   nucleo   AS "Núcleo",
+                   net      AS "NET"
+            FROM captacao.tb_diversificador
         """, conn)
-        logger.info(f"  [PG] {len(df)} registros de tb_positivador")
+        logger.info(f"  [PG] {len(df)} registros de tb_diversificador")
         return df
     finally:
         conn.close()
@@ -115,8 +114,35 @@ def carregar_base(caminho: str, sheet: str, engine: str = 'openpyxl') -> pd.Data
 
 
 def normalizar_colunas(df: pd.DataFrame) -> pd.DataFrame:
-    """Remove espaços extras dos nomes de colunas."""
-    df.columns = [str(c).strip() for c in df.columns]
+    """Remove espaços extras e NBSP (\xa0) dos nomes de colunas."""
+    df.columns = [str(c).strip().replace('\xa0', '').strip() for c in df.columns]
+    return df
+
+
+def _agregar_custodia(df: pd.DataFrame, nome_base: str = '') -> pd.DataFrame:
+    """Agrega a TB_DIVERSIFICADOR (detalhada por produto) em uma linha por assessor/núcleo."""
+    df = normalizar_colunas(df)
+    df = df.dropna(how='all').copy()
+
+    # Converte NET para numérico
+    df[config.CUST_VALOR] = pd.to_numeric(df[config.CUST_VALOR], errors='coerce').fillna(0)
+
+    # Padroniza strings
+    for col in [config.CUST_ASSESSOR, config.CUST_TIME, config.CUST_STATUS]:
+        if col in df.columns:
+            df[col] = df[col].astype(str).str.strip().str.upper()
+
+    # Agrega NET por assessor + núcleo
+    agg = {config.CUST_VALOR: 'sum'}
+    if config.CUST_STATUS in df.columns:
+        agg[config.CUST_STATUS] = 'first'
+
+    antes = len(df)
+    df = (
+        df.groupby([config.CUST_ASSESSOR, config.CUST_TIME], as_index=False)
+        .agg(agg)
+    )
+    logger.info(f"  → [{nome_base}] Agregado de {antes} registros para {len(df)} assessores/núcleos")
     return df
 
 
@@ -281,35 +307,33 @@ def executar_etl(assessores_ativos: set = None) -> pd.DataFrame:
 
 
 def executar_etl_custodia_escritorio() -> pd.DataFrame:
-    """Retorna TB_POSITIVADOR sem filtro de assessores — para total Nobel de custódia."""
+    """Retorna TB_DIVERSIFICADOR sem filtro de assessores — para total Nobel de custódia."""
     if config.FONTE_DADOS == 'postgres':
         logger.info("=== ETL CUSTODIA ESCRITORIO (PostgreSQL — sem filtro) ===")
-        df = _pull_tb_positivador_postgres()
+        df = _pull_tb_diversificador_postgres()
         df[config.CUST_VALOR] = pd.to_numeric(df[config.CUST_VALOR], errors='coerce').fillna(0)
         return df
 
     if config.FONTE_DADOS == 'd1':
-        from cloudflare_d1 import pull_tb_positivador
+        from cloudflare_d1 import pull_tb_diversificador
         logger.info("=== ETL CUSTODIA ESCRITORIO (D1 — sem filtro) ===")
-        return pull_tb_positivador()
+        return pull_tb_diversificador()
 
     logger.info("=== ETL CUSTODIA ESCRITORIO (sem filtro de assessores) ===")
     df = carregar_base(config.ARQUIVO_1, config.SHEET_CUSTODIA, engine='openpyxl')
-    df.columns = [str(c).strip() for c in df.columns]
-    df = df.dropna(how='all').copy()
-    df[config.CUST_VALOR] = pd.to_numeric(df[config.CUST_VALOR], errors='coerce').fillna(0)
-    logger.info(f"  → {len(df)} registros totais de custódia do escritório")
+    df = _agregar_custodia(df, nome_base='TB_DIVERSIFICADOR-Escritorio')
+    logger.info(f"  → {len(df)} assessores/núcleos de custódia do escritório")
     return df
 
 
 def executar_etl_custodia(assessores_ativos: set = None) -> pd.DataFrame:
-    """ETL da TB_POSITIVADOR: retorna custodia por assessor sem OPS."""
+    """ETL da TB_DIVERSIFICADOR: retorna custodia por assessor sem OPS."""
     if config.FONTE_DADOS == 'postgres':
         import unicodedata
         logger.info("=== INICIANDO ETL CUSTODIA (fonte: PostgreSQL) ===")
         if assessores_ativos is None:
             assessores_ativos = carregar_assessores_ativos()
-        df = _pull_tb_positivador_postgres()
+        df = _pull_tb_diversificador_postgres()
         df[config.CUST_VALOR] = pd.to_numeric(df[config.CUST_VALOR], errors='coerce').fillna(0)
         for col in [config.CUST_ASSESSOR, config.CUST_TIME, config.CUST_STATUS]:
             if col in df.columns:
@@ -334,12 +358,12 @@ def executar_etl_custodia(assessores_ativos: set = None) -> pd.DataFrame:
         return df[cols]
 
     if config.FONTE_DADOS == 'd1':
-        from cloudflare_d1 import pull_tb_positivador
+        from cloudflare_d1 import pull_tb_diversificador
         import unicodedata
         logger.info("=== INICIANDO ETL CUSTODIA (fonte: Cloudflare D1) ===")
         if assessores_ativos is None:
             assessores_ativos = carregar_assessores_ativos()
-        df = pull_tb_positivador()
+        df = pull_tb_diversificador()
         # Filtra equipes permitidas
         permitidas = [e.upper() for e in config.EQUIPES_PERMITIDAS]
         antes = len(df)
@@ -368,19 +392,8 @@ def executar_etl_custodia(assessores_ativos: set = None) -> pd.DataFrame:
 
     df = carregar_base(config.ARQUIVO_1, config.SHEET_CUSTODIA, engine='openpyxl')
 
-    # Normaliza colunas (strip + unicode)
-    df.columns = [str(c).strip() for c in df.columns]
-
-    # Remove linhas completamente vazias
-    df = df.dropna(how='all').copy()
-
-    # Garante que Net Em M e numerica
-    df[config.CUST_VALOR] = pd.to_numeric(df[config.CUST_VALOR], errors='coerce').fillna(0)
-
-    # Padroniza strings
-    for col in [config.CUST_ASSESSOR, config.CUST_TIME, config.CUST_STATUS]:
-        if col in df.columns:
-            df[col] = df[col].astype(str).str.strip().str.upper()
+    # TB_DIVERSIFICADOR é detalhada por produto: agrega NET por assessor/núcleo
+    df = _agregar_custodia(df, nome_base='TB_DIVERSIFICADOR')
 
     # Carrega assessores ativos (se não passado externamente)
     if assessores_ativos is None:
@@ -394,18 +407,16 @@ def executar_etl_custodia(assessores_ativos: set = None) -> pd.DataFrame:
 
     # Filtra assessores ativos via nome do assessor (comparação com JSON)
     if assessores_ativos and config.CUST_ASSESSOR in df.columns:
-        # Carrega nomes dos assessores ativos do JSON
         import json
         import unicodedata
-        
+
         def normalizar_nome(nome):
-            """Remove acentos e normaliza para comparação."""
             return unicodedata.normalize('NFD', nome).encode('ascii', 'ignore').decode('utf-8').strip().upper()
-        
+
         with open(config.ARQUIVO_ASSESSORES, 'r', encoding='utf-8') as f:
             assessores_json = json.load(f)
         nomes_ativos = {normalizar_nome(a['nome_assessor']) for a in assessores_json if a.get('status', '').upper() == 'ATIVO'}
-        
+
         antes = len(df)
         df['_nome_normalizado'] = df[config.CUST_ASSESSOR].apply(normalizar_nome)
         df = df[df['_nome_normalizado'].isin(nomes_ativos)].copy()
@@ -417,7 +428,7 @@ def executar_etl_custodia(assessores_ativos: set = None) -> pd.DataFrame:
                         config.CUST_VALOR, config.CUST_STATUS] if c in df.columns]
     df = df[cols]
 
-    logger.info(f"=== ETL CUSTODIA CONCLUIDO: {len(df)} clientes ===")
+    logger.info(f"=== ETL CUSTODIA CONCLUIDO: {len(df)} assessores ===")
     return df
 
 

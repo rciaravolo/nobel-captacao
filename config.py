@@ -28,7 +28,7 @@ ARQUIVO_2       = _arquivo_exato(CAMINHO_BASE, 'ONE PAGE - ATUAL_V2.xlsm')
 SHEET_BASE1     = 'TB_CAP'            # sheet da Base 1 (transações diárias)
 SHEET_BASE2     = 'CAPTAÇÃO ATUAL'    # sheet da Base 2 (transações diárias)
 SHEET_HISTORICO = 'HISTÓRICO CAP'     # sheet com dados acumulados mensais
-SHEET_CUSTODIA  = 'TB_POSITIVADOR'    # sheet de custódia
+SHEET_CUSTODIA  = 'TB_DIVERSIFICADOR'  # sheet de custódia (detalhada por produto)
 
 # ── COLUNAS CAPTAÇÃO ─────────────────────────────────────────
 COLUNA_STATUS   = 'STATUS'
@@ -37,11 +37,13 @@ COLUNA_TIME     = 'Núcleo'
 COLUNA_ASSESSOR = 'Assessor'
 COLUNA_DATA     = 'Data'
 
-# ── COLUNAS CUSTÓDIA (TB_POSITIVADOR) ───────────────────────
+# ── COLUNAS CUSTÓDIA (TB_DIVERSIFICADOR) ──────────────────────
+# A TB_DIVERSIFICADOR vem uma linha por produto/cliente.
+# O ETL agrega a coluna NET por assessor/núcleo para formar o total de custódia.
 CUST_ASSESSOR   = 'Assessor'
 CUST_TIME       = 'Núcleo'
-CUST_VALOR      = 'Net Em M'
-CUST_STATUS     = 'Status'
+CUST_VALOR      = 'NET'
+CUST_STATUS     = 'Status'            # inexistente na TB_DIVERSIFICADOR; mantido para compatibilidade
 CUST_LIMITE_MI  = 50_000_000          # separador >=50mi vs <50mi
 
 # ── ASSESSORES ATIVOS ────────────────────────────────────

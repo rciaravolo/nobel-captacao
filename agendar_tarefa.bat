@@ -25,7 +25,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
   "Unregister-ScheduledTask -TaskName '%NOME_TAREFA%' -Confirm:$false -ErrorAction SilentlyContinue; " ^
   "$action  = New-ScheduledTaskAction -Execute 'cmd.exe' -Argument ('/c \"' + '%BAT_PATH%' + '\"'); " ^
   "$trigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday,Tuesday,Wednesday,Thursday,Friday -At '17:45'; " ^
-  "$settings = New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Hours 1) -StartWhenAvailable; " ^
+  "$settings = New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Hours 1) -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -MultipleInstances IgnoreNew; " ^
   "Register-ScheduledTask -TaskName '%NOME_TAREFA%' -Action $action -Trigger $trigger -Settings $settings -RunLevel Limited -Force | Out-Null; " ^
   "Write-Host 'OK'"
 

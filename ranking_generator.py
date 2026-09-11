@@ -132,7 +132,8 @@ def gerar_ranking_custodia_assessores(df_cust: pd.DataFrame):
         .reset_index()
         .sort_values('total_custodia', ascending=False)
     )
-    agrupado['total_custodia_fmt'] = agrupado['total_custodia'].apply(_formatar_moeda)
+    agrupado['total_custodia_fmt'] = agrupado['total_custodia'].apply(_formatar_custodia_mm)
+    agrupado['custodia_tier'] = agrupado['total_custodia'].apply(_get_custodia_tier)
     agrupado['posicao'] = range(1, len(agrupado) + 1)
 
     limite = config.CUST_LIMITE_MI
@@ -159,3 +160,26 @@ def _formatar_numero(valor: float) -> str:
         return f"{valor:,.0f}".replace(',', '.')
     except Exception:
         return "0"
+
+
+def _get_custodia_tier(valor: float) -> str:
+    if valor >= 500_000_000:
+        return 'preta'
+    if valor >= 300_000_000:
+        return 'ouro'
+    if valor >= 200_000_000:
+        return 'prata'
+    if valor >= 100_000_000:
+        return 'bronze'
+    if valor >= 50_000_000:
+        return 'neutro'
+    return 'atras'
+
+
+def _formatar_custodia_mm(valor: float) -> str:
+    """Formata custódia de assessor em milhões (R$ X,X mm)."""
+    try:
+        mm = valor / 1_000_000
+        return f"R$ {mm:,.1f} mm".replace(',', 'X').replace('.', ',').replace('X', '.')
+    except Exception:
+        return "R$ 0,0 mm"

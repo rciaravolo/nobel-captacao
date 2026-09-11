@@ -1,12 +1,14 @@
 """
 contas_etl.py
-Lê as planilhas de Ativação, Evasão, Habilitação e Positivador do relatório de
+Lê as planilhas de Ativação, Evasão e Habilitação do relatório de
 movimentação de base (CONTAS) e retorna as métricas e dados de gráfico necessários
-para integrar ao relatório de captação.
+para integrar ao relatório de captação. O Net Em M (custódia por cliente) é obtido
+do TB_DIVERSIFICADOR (ATUALIZAÇÃO - BASES ONE PAGE.xlsx).
 """
 
 import logging
 import os
+import unicodedata
 
 import pandas as pd
 from datetime import datetime
@@ -27,29 +29,46 @@ def _caminho(arquivo: str, base_dir: str = None) -> str:
     return os.path.join(base_dir or _CONTAS_DIR, arquivo)
 
 
+def _resolver_arquivo(base_dir: str, nome: str) -> str | None:
+    # Windows não normaliza NFC/NFD automaticamente; OneDrive costuma salvar em NFD.
+    # Tenta match direto, depois busca no listdir comparando com normalização NFC.
+    direto = os.path.join(base_dir, nome)
+    if os.path.exists(direto):
+        return direto
+    alvo = unicodedata.normalize('NFC', nome).casefold()
+    try:
+        for f in os.listdir(base_dir):
+            if unicodedata.normalize('NFC', f).casefold() == alvo:
+                return os.path.join(base_dir, f)
+    except OSError:
+        pass
+    return None
+
+
 def carregar_dados_contas(base_dir: str = None) -> dict | None:
     """
-    Lê as 4 planilhas e retorna dicionário com métricas e dados de gráfico.
+    Lê as planilhas de movimentação de base e retorna dicionário com métricas e dados de gráfico.
     Retorna None se algum arquivo não for encontrado ou ocorrer erro de leitura.
     """
+    dir_base = base_dir or _CONTAS_DIR
     arquivos = {
         'ativacao':    'ativacao.xlsx',
         'evasao':      'evasao.xlsx',
         'habilitacao': 'habilitacao.xlsx',
-        'positivador': 'Relatório Positivador.xlsx',
     }
 
+    resolvidos = {}
     for chave, nome in arquivos.items():
-        path = _caminho(nome, base_dir)
-        if not os.path.exists(path):
-            logger.warning(f"[contas_etl] Arquivo não encontrado: {path} — seção de contas não será gerada.")
+        path = _resolver_arquivo(dir_base, nome)
+        if path is None:
+            logger.warning(f"[contas_etl] Arquivo não encontrado: {os.path.join(dir_base, nome)} — seção de contas não será gerada.")
             return None
+        resolvidos[chave] = path
 
     try:
-        ativ = pd.read_excel(_caminho(arquivos['ativacao'], base_dir))
-        evas = pd.read_excel(_caminho(arquivos['evasao'], base_dir))
-        hab  = pd.read_excel(_caminho(arquivos['habilitacao'], base_dir))
-        pos  = pd.read_excel(_caminho(arquivos['positivador'], base_dir))
+        ativ = pd.read_excel(resolvidos['ativacao'])
+        evas = pd.read_excel(resolvidos['evasao'])
+        hab  = pd.read_excel(resolvidos['habilitacao'])
     except Exception as e:
         logger.warning(f"[contas_etl] Erro ao ler planilhas de contas: {e}")
         return None
@@ -59,16 +78,34 @@ def carregar_dados_contas(base_dir: str = None) -> dict | None:
         hab = hab[hab["Conta"].notna()].copy()
         hab = hab[hab["Conta"].apply(lambda x: str(x).strip().isdigit())].copy()
 
-        # Positivador: ignora linhas sem status (transferências internas)
-        pos_f = pos[pos["Status"].notna() & (pos["Status"].astype(str).str.strip() != "")].copy()
+        def _norm_id(s):
+            # Excel mistura int, float e str na coluna de conta/cliente.
+            # Normaliza tudo para string ("12345.0" → "12345") para o merge não quebrar.
+            return (
+                pd.Series(s)
+                .astype("string")
+                .str.strip()
+                .str.replace(r"\.0$", "", regex=True)
+            )
 
-        # Cruzamento com Positivador para Net Em M, Tipo Pessoa, Receita no Mês
-        colunas_pos = ["Cliente", "Net Em M", "Tipo Pessoa", "Receita no Mês"]
+        # Cruzamento com TB_DIVERSIFICADOR para Net Em M (custódia por cliente)
+        try:
+            import config as _config
+            df_div = pd.read_excel(_config.ARQUIVO_1, sheet_name=_config.SHEET_CUSTODIA, engine='openpyxl')
+            df_div.columns = [str(c).strip().replace('\xa0', '').strip() for c in df_div.columns]
+            df_div['NET'] = pd.to_numeric(df_div['NET'], errors='coerce').fillna(0)
+            df_div['Cliente'] = _norm_id(df_div['Cliente']).values
+            div_net = df_div.groupby('Cliente', as_index=False)['NET'].sum()
+            div_net.columns = ['Cliente', 'Net Em M']
+            logger.info(f"[contas_etl] TB_DIVERSIFICADOR carregado: {len(div_net)} clientes únicos")
+        except Exception as e:
+            logger.warning(f"[contas_etl] Erro ao carregar TB_DIVERSIFICADOR para Net Em M: {e} — usando zero")
+            div_net = pd.DataFrame(columns=['Cliente', 'Net Em M'])
 
         def cruzar(df_base):
-            return df_base.merge(
-                pos_f[colunas_pos], left_on="Conta", right_on="Cliente", how="left"
-            )
+            df = df_base.copy()
+            df["Conta"] = _norm_id(df["Conta"]).values
+            return df.merge(div_net, left_on="Conta", right_on="Cliente", how="left")
 
         ativ_m = cruzar(ativ)
         evas_m = cruzar(evas)
@@ -78,10 +115,6 @@ def carregar_dados_contas(base_dir: str = None) -> dict | None:
         ativ_net  = ativ_m["Net Em M"].sum()
         evas_net  = evas_m["Net Em M"].sum()
         hab_net   = hab_m["Net Em M"].sum()
-
-        hab_sim   = int((hab["Conta Ativada"] == "Sim").sum())
-        hab_nao   = int((hab["Conta Ativada"] == "Não").sum())
-        hab_tx    = hab_sim / len(hab) * 100 if len(hab) > 0 else 0
 
         saldo     = len(ativ) - len(evas)
         razao     = len(evas) / len(ativ) if len(ativ) > 0 else 0
@@ -108,9 +141,6 @@ def carregar_dados_contas(base_dir: str = None) -> dict | None:
             'ativ_total': len(ativ),
             'ativ_net':   ativ_net,
             'hab_total':  len(hab),
-            'hab_sim':    hab_sim,
-            'hab_nao':    hab_nao,
-            'hab_tx':     hab_tx,
             'evas_total': len(evas),
             'evas_net':   evas_net,
             'saldo':      saldo,

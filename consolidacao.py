@@ -66,7 +66,7 @@ def calcular_resumo_custodia(df_cust: pd.DataFrame, df_escritorio_cust: pd.DataF
     """Calcula metricas de custodia. df_escritorio_cust fornece o total bruto (sem filtro)."""
     logger.info("=== CALCULANDO RESUMO CUSTODIA ===")
 
-    # Total do escritório = soma total da TB_POSITIVADOR sem filtro
+    # Total do escritório = soma total da TB_DIVERSIFICADOR sem filtro
     if df_escritorio_cust is not None and config.CUST_VALOR in df_escritorio_cust.columns:
         total_escritorio = df_escritorio_cust[config.CUST_VALOR].sum()
     else:
@@ -81,7 +81,7 @@ def calcular_resumo_custodia(df_cust: pd.DataFrame, df_escritorio_cust: pd.DataF
 
     resumo = {
         'total_custodia':       total_escritorio,
-        'total_custodia_fmt':   _formatar_moeda(total_escritorio),
+        'total_custodia_fmt':   _formatar_custodia(total_escritorio),
         'num_assessores_cust':  num_assessores,
         'num_times_cust':       num_times,
         'num_acima_50mi':       num_acima_50mi,
@@ -100,3 +100,11 @@ def _formatar_moeda(valor: float) -> str:
         return f"R$ {valor:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.')
     except Exception:
         return "R$ 0,00"
+
+
+def _formatar_custodia(valor: float) -> str:
+    """Formata custódia total sem decimais (R$ X.XXX.XXX.XXX)."""
+    try:
+        return f"R$ {valor:,.0f}".replace(',', '.')
+    except Exception:
+        return "R$ 0"

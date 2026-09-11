@@ -1,6 +1,6 @@
 """
 push_cloudflare_d1.py
-Lê TB_CAP e TB_POSITIVADOR do Excel e envia para o Cloudflare D1.
+Lê TB_CAP e TB_DIVERSIFICADOR do Excel e envia para o Cloudflare D1.
 
 Agendar via Windows Task Scheduler para rodar durante o dia de trabalho
 (ex.: às 10h, 13h e 16h30, Segunda a Sexta).
@@ -65,9 +65,9 @@ import pandas as pd
 import config
 from cloudflare_d1 import (
     is_configured, criar_tabelas,
-    push_tb_cap, push_tb_positivador,
+    push_tb_cap, push_tb_diversificador,
 )
-from etl_bases import carregar_base, normalizar_colunas, padronizar_dataframe
+from etl_bases import carregar_base, normalizar_colunas, padronizar_dataframe, _agregar_custodia
 
 
 def main():
@@ -126,28 +126,18 @@ def main():
     push_tb_cap(df_cap, data_atualizacao=data_ref)
 
     # ────────────────────────────────────────────────────────────
-    # TB_POSITIVADOR (Custódia)
+    # TB_DIVERSIFICADOR (Custódia)
     # ────────────────────────────────────────────────────────────
-    logger.info("Carregando TB_POSITIVADOR do Excel...")
+    logger.info("Carregando TB_DIVERSIFICADOR do Excel...")
     df_pos = carregar_base(config.ARQUIVO_1, config.SHEET_CUSTODIA, engine='openpyxl')
-    df_pos.columns = [str(c).strip() for c in df_pos.columns]
-    df_pos = df_pos.dropna(how='all').copy()
-    df_pos[config.CUST_VALOR] = pd.to_numeric(
-        df_pos[config.CUST_VALOR], errors='coerce'
-    ).fillna(0)
 
-    logger.info(f"  → {len(df_pos)} registros brutos de custódia")
-
-    # Agrega por assessor+nucleo+status antes de enviar ao D1.
+    # Agrega por assessor+nucleo antes de enviar ao D1.
     # O relatório usa apenas o total por assessor — não há necessidade de
-    # enviar uma linha por cliente (7940 linhas → ~40 linhas agregadas).
-    group_cols = [c for c in [config.CUST_ASSESSOR, config.CUST_TIME, config.CUST_STATUS]
-                  if c in df_pos.columns]
-    if group_cols and config.CUST_VALOR in df_pos.columns:
-        df_pos = df_pos.groupby(group_cols, as_index=False)[config.CUST_VALOR].sum()
-        logger.info(f"  → {len(df_pos)} registros após agregação por assessor")
+    # enviar uma linha por produto/cliente (50k linhas → ~40 linhas agregadas).
+    df_pos = _agregar_custodia(df_pos, nome_base='TB_DIVERSIFICADOR-D1')
+    logger.info(f"  → {len(df_pos)} registros após agregação por assessor")
 
-    push_tb_positivador(df_pos)
+    push_tb_diversificador(df_pos)
 
     logger.info("=" * 60)
     logger.info("PUSH CONCLUÍDO COM SUCESSO")

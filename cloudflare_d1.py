@@ -1,6 +1,6 @@
 """
 cloudflare_d1.py
-Cliente para o Cloudflare D1 — push e pull das tabelas TB_CAP e TB_POSITIVADOR.
+Cliente para o Cloudflare D1 — push e pull das tabelas TB_CAP e TB_DIVERSIFICADOR.
 
 Usa a API REST do D1:
   POST /client/v4/accounts/{account_id}/d1/database/{database_id}/query
@@ -84,12 +84,11 @@ _SQL_CREATE = [
         data_transacao  TEXT,
         status          TEXT
     )""",
-    """CREATE TABLE IF NOT EXISTS tb_positivador (
+    """CREATE TABLE IF NOT EXISTS tb_diversificador (
         id         INTEGER PRIMARY KEY AUTOINCREMENT,
         assessor   TEXT,
         nucleo     TEXT,
-        net_em_m   REAL,
-        status     TEXT
+        net        REAL
     )""",
     """CREATE TABLE IF NOT EXISTS metadata (
         chave      TEXT PRIMARY KEY,
@@ -169,32 +168,31 @@ def push_tb_cap(df: pd.DataFrame, data_atualizacao: str = None):
     logger.info("Push TB_CAP concluído.")
 
 
-def push_tb_positivador(df: pd.DataFrame):
-    """Substitui TB_POSITIVADOR no D1 com os dados do DataFrame."""
+def push_tb_diversificador(df: pd.DataFrame):
+    """Substitui TB_DIVERSIFICADOR no D1 com os dados do DataFrame (já agregado por assessor)."""
     import config as _cfg
 
-    logger.info(f"Push TB_POSITIVADOR → D1: {len(df)} registros...")
+    logger.info(f"Push TB_DIVERSIFICADOR → D1: {len(df)} registros...")
     rows = []
     for _, row in df.iterrows():
         rows.append((
             str(row.get(_cfg.CUST_ASSESSOR) or '').strip(),
             str(row.get(_cfg.CUST_TIME) or '').strip(),
             float(row.get(_cfg.CUST_VALOR) or 0),
-            str(row.get(_cfg.CUST_STATUS) or '').strip(),
         ))
 
     _push_dataframe(
-        'tb_positivador',
-        ['assessor', 'nucleo', 'net_em_m', 'status'],
+        'tb_diversificador',
+        ['assessor', 'nucleo', 'net'],
         rows,
     )
 
     now = datetime.now().isoformat()
     _query(
         "INSERT OR REPLACE INTO metadata (chave, valor, updated_at) VALUES (?,?,?)",
-        ['tb_positivador_updated_at', now, now],
+        ['tb_diversificador_updated_at', now, now],
     )
-    logger.info("Push TB_POSITIVADOR concluído.")
+    logger.info("Push TB_DIVERSIFICADOR concluído.")
 
 
 # ── Pull (D1 → Python) ───────────────────────────────────────────────────────
@@ -251,26 +249,25 @@ def pull_tb_cap() -> tuple[pd.DataFrame, str]:
     return df, data_str
 
 
-def pull_tb_positivador() -> pd.DataFrame:
-    """Lê TB_POSITIVADOR do D1 e retorna DataFrame com colunas no formato original."""
+def pull_tb_diversificador() -> pd.DataFrame:
+    """Lê TB_DIVERSIFICADOR do D1 e retorna DataFrame com colunas no formato original."""
     import config as _cfg
 
-    logger.info("Pull TB_POSITIVADOR ← D1...")
-    result = _query("SELECT * FROM tb_positivador ORDER BY id")
+    logger.info("Pull TB_DIVERSIFICADOR ← D1...")
+    result = _query("SELECT * FROM tb_diversificador ORDER BY id")
     rows = result['result'][0]['results']
 
     if not rows:
-        logger.warning("TB_POSITIVADOR está vazio no D1!")
+        logger.warning("TB_DIVERSIFICADOR está vazio no D1!")
         return pd.DataFrame()
 
     df = pd.DataFrame(rows)
     df = df.rename(columns={
         'assessor': _cfg.CUST_ASSESSOR,
         'nucleo':   _cfg.CUST_TIME,
-        'net_em_m': _cfg.CUST_VALOR,
-        'status':   _cfg.CUST_STATUS,
+        'net':      _cfg.CUST_VALOR,
     })
     df[_cfg.CUST_VALOR] = pd.to_numeric(df[_cfg.CUST_VALOR], errors='coerce').fillna(0)
 
-    logger.info(f"  → {len(df)} registros TB_POSITIVADOR carregados do D1")
+    logger.info(f"  → {len(df)} registros TB_DIVERSIFICADOR carregados do D1")
     return df
