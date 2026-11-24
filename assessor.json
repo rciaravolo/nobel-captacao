@@ -135,6 +135,13 @@
     "incluir_ranking": false
   },
   {
+    "id_assessor": "A24268",
+    "nome_assessor": "Lorena Farias",
+    "equipe": "PRIVATE",
+    "status": "Ativo",
+    "mail_assessor": "lorena.farias@nobelcapital.com.br"
+  },
+  {
     "id_assessor": "A26496",
     "nome_assessor": "Lucas Gaspar",
     "equipe": "PRIVATE",
