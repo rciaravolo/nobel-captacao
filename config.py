@@ -46,6 +46,13 @@ CUST_TIME       = 'Núcleo'
 CUST_VALOR      = 'NET'
 CUST_STATUS     = 'Status'            # inexistente na TB_DIVERSIFICADOR; mantido para compatibilidade
 CUST_LIMITE_MI  = 50_000_000          # separador >=50mi vs <50mi
+CUST_CLIENTE    = 'Cliente'           # código do cliente na TB_DIVERSIFICADOR
+
+# Clientes retirados da custódia (rankings e total Nobel) — exclusões temporárias.
+# Os códigos ficam SÓ no .env local (CLIENTES_EXCLUIDOS_CUSTODIA="COD1,COD2"), nunca no repositório.
+CLIENTES_EXCLUIDOS_CUSTODIA = [
+    c.strip() for c in _os.environ.get('CLIENTES_EXCLUIDOS_CUSTODIA', '').split(',') if c.strip()
+]
 
 # ── ASSESSORES ATIVOS ────────────────────────────────────
 ARQUIVO_ASSESSORES = _os.environ.get(

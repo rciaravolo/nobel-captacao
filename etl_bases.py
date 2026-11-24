@@ -185,6 +185,15 @@ def _agregar_custodia(df: pd.DataFrame, nome_base: str = '') -> pd.DataFrame:
     # Converte NET para numérico
     df[config.CUST_VALOR] = pd.to_numeric(df[config.CUST_VALOR], errors='coerce').fillna(0)
 
+    # Remove clientes excluídos temporariamente da custódia (ver config.CLIENTES_EXCLUIDOS_CUSTODIA)
+    if config.CLIENTES_EXCLUIDOS_CUSTODIA and config.CUST_CLIENTE in df.columns:
+        excluidos = {str(c).strip().upper() for c in config.CLIENTES_EXCLUIDOS_CUSTODIA}
+        mascara = df[config.CUST_CLIENTE].astype(str).str.strip().str.upper().isin(excluidos)
+        if mascara.any():
+            logger.info(f"  → [{nome_base}] Clientes excluídos da custódia: {mascara.sum()} registros "
+                        f"(R$ {df.loc[mascara, config.CUST_VALOR].sum():,.2f})")
+        df = df[~mascara].copy()
+
     # Padroniza strings
     for col in [config.CUST_CODIGO, config.CUST_ASSESSOR, config.CUST_TIME, config.CUST_STATUS]:
         if col in df.columns:
