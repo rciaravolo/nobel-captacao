@@ -109,26 +109,38 @@ def gerar_ranking_custodia_assessores(df_cust: pd.DataFrame):
     """Agrega custodia por assessor e separa em >=50mi e <50mi. Retorna (df_grande, df_pequeno)."""
     logger.info("Gerando ranking CUSTODIA por ASSESSORES...")
 
-    import unicodedata
-    def normalizar_nome(nome):
-        return unicodedata.normalize('NFD', nome).encode('ascii', 'ignore').decode('utf-8').strip().upper()
+    from etl_bases import normalizar_nome
 
     df_cust = df_cust.copy()
     df_cust[config.CUST_ASSESSOR] = df_cust[config.CUST_ASSESSOR].apply(normalizar_nome)
 
+    # O código é a chave estável; o nome fica só para exibição
+    tem_codigo = config.CUST_CODIGO in df_cust.columns
+    if tem_codigo:
+        df_cust[config.CUST_CODIGO] = df_cust[config.CUST_CODIGO].astype(str).str.strip().str.upper()
+
     # Filtra apenas assessores que devem aparecer nos rankings individuais
+    codigos_ranking = df_cust.attrs.get('codigos_ranking')
     nomes_ranking = df_cust.attrs.get('nomes_ranking')
-    if nomes_ranking:
-        antes = len(df_cust)
+    antes = len(df_cust)
+    if tem_codigo and codigos_ranking:
+        df_cust = df_cust[df_cust[config.CUST_CODIGO].isin(codigos_ranking)].copy()
+        logger.info(f"  → Filtro ranking individual (por código): {antes} → {len(df_cust)} registros")
+    elif nomes_ranking:
         df_cust = df_cust[df_cust[config.CUST_ASSESSOR].isin(nomes_ranking)].copy()
-        logger.info(f"  → Filtro ranking individual: {antes} → {len(df_cust)} registros")
+        logger.info(f"  → Filtro ranking individual (por nome): {antes} → {len(df_cust)} registros")
+
+    chave = config.CUST_CODIGO if tem_codigo else config.CUST_ASSESSOR
+    aggs = {
+        'total_custodia': (config.CUST_VALOR, 'sum'),
+        'time': (config.CUST_TIME, 'first'),
+    }
+    if tem_codigo:
+        aggs[config.CUST_ASSESSOR] = (config.CUST_ASSESSOR, 'first')
 
     agrupado = (
-        df_cust.groupby(config.CUST_ASSESSOR)
-        .agg(
-            total_custodia=(config.CUST_VALOR, 'sum'),
-            time=(config.CUST_TIME, 'first'),
-        )
+        df_cust.groupby(chave)
+        .agg(**aggs)
         .reset_index()
         .sort_values('total_custodia', ascending=False)
     )

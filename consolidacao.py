@@ -72,10 +72,13 @@ def calcular_resumo_custodia(df_cust: pd.DataFrame, df_escritorio_cust: pd.DataF
     else:
         total_escritorio = df_cust[config.CUST_VALOR].sum()
 
-    num_assessores = df_cust[config.CUST_ASSESSOR].nunique()
+    # Agrupa pelo código do assessor quando disponível — o nome pode divergir na base
+    chave_assessor = config.CUST_CODIGO if config.CUST_CODIGO in df_cust.columns else config.CUST_ASSESSOR
+
+    num_assessores = df_cust[chave_assessor].nunique()
     num_times = df_cust[config.CUST_TIME].nunique()
 
-    por_assessor = df_cust.groupby(config.CUST_ASSESSOR)[config.CUST_VALOR].sum()
+    por_assessor = df_cust.groupby(chave_assessor)[config.CUST_VALOR].sum()
     num_acima_50mi = int((por_assessor >= config.CUST_LIMITE_MI).sum())
     num_abaixo_50mi = int((por_assessor < config.CUST_LIMITE_MI).sum())
 

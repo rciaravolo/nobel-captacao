@@ -85,10 +85,11 @@ _SQL_CREATE = [
         status          TEXT
     )""",
     """CREATE TABLE IF NOT EXISTS tb_diversificador (
-        id         INTEGER PRIMARY KEY AUTOINCREMENT,
-        assessor   TEXT,
-        nucleo     TEXT,
-        net        REAL
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        codigo_real TEXT,
+        assessor    TEXT,
+        nucleo      TEXT,
+        net         REAL
     )""",
     """CREATE TABLE IF NOT EXISTS metadata (
         chave      TEXT PRIMARY KEY,
@@ -98,10 +99,25 @@ _SQL_CREATE = [
 ]
 
 
+# Colunas adicionadas depois da criação original das tabelas.
+# CREATE TABLE IF NOT EXISTS não altera tabela existente, então o ALTER roda sempre
+# (o D1 devolve erro de coluna duplicada quando já existe — ignorado).
+_SQL_MIGRACOES = [
+    "ALTER TABLE tb_diversificador ADD COLUMN codigo_real TEXT",
+]
+
+
 def criar_tabelas():
-    """Cria as tabelas no D1 se ainda não existirem."""
+    """Cria as tabelas no D1 se ainda não existirem e aplica migrações pendentes."""
     for sql in _SQL_CREATE:
         _query(sql)
+    for sql in _SQL_MIGRACOES:
+        try:
+            _query(sql)
+            logger.info(f"  → Migração aplicada: {sql}")
+        except RuntimeError as e:
+            if 'duplicate column' not in str(e).lower():
+                raise
     logger.info("Tabelas D1 verificadas/criadas.")
 
 
@@ -176,6 +192,7 @@ def push_tb_diversificador(df: pd.DataFrame):
     rows = []
     for _, row in df.iterrows():
         rows.append((
+            str(row.get(_cfg.CUST_CODIGO) or '').strip(),
             str(row.get(_cfg.CUST_ASSESSOR) or '').strip(),
             str(row.get(_cfg.CUST_TIME) or '').strip(),
             float(row.get(_cfg.CUST_VALOR) or 0),
@@ -183,7 +200,7 @@ def push_tb_diversificador(df: pd.DataFrame):
 
     _push_dataframe(
         'tb_diversificador',
-        ['assessor', 'nucleo', 'net'],
+        ['codigo_real', 'assessor', 'nucleo', 'net'],
         rows,
     )
 
@@ -263,9 +280,10 @@ def pull_tb_diversificador() -> pd.DataFrame:
 
     df = pd.DataFrame(rows)
     df = df.rename(columns={
-        'assessor': _cfg.CUST_ASSESSOR,
-        'nucleo':   _cfg.CUST_TIME,
-        'net':      _cfg.CUST_VALOR,
+        'codigo_real': _cfg.CUST_CODIGO,
+        'assessor':    _cfg.CUST_ASSESSOR,
+        'nucleo':      _cfg.CUST_TIME,
+        'net':         _cfg.CUST_VALOR,
     })
     df[_cfg.CUST_VALOR] = pd.to_numeric(df[_cfg.CUST_VALOR], errors='coerce').fillna(0)
 

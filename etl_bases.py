@@ -71,30 +71,88 @@ def _pull_tb_diversificador_postgres() -> pd.DataFrame:
 COLUNAS_NECESSARIAS = [config.COLUNA_VALOR, config.COLUNA_TIME, config.COLUNA_ASSESSOR]
 
 
+def normalizar_nome(nome) -> str:
+    """Remove acentos e padroniza para comparação de nomes."""
+    import unicodedata
+    return unicodedata.normalize('NFD', str(nome)).encode('ascii', 'ignore').decode('utf-8').strip().upper()
+
+
+def _ids_do_assessor(assessor: dict) -> set:
+    """Todos os códigos de um assessor: o principal + os de 'ids_alternativos'.
+
+    Alguns assessores têm mais de um código na base (ex.: Marco Silveira aparece como
+    A32561 e A47207). Sem registrar o código extra, a custódia dele fica de fora.
+    """
+    ids = {assessor['id_assessor'].strip().upper()}
+    ids |= {str(i).strip().upper() for i in assessor.get('ids_alternativos', []) if str(i).strip()}
+    return ids
+
+
+def _nomes_ativos_json() -> set:
+    """Nomes normalizados dos assessores ativos — fallback quando a base não traz o código."""
+    with open(config.ARQUIVO_ASSESSORES, encoding='utf-8-sig') as f:
+        data = json.load(f)
+    return {normalizar_nome(a['nome_assessor']) for a in data if a.get('status', '').strip().lower() == 'ativo'}
+
+
+def _filtrar_custodia_ativos(df: pd.DataFrame, assessores_ativos: set) -> pd.DataFrame:
+    """Filtra custódia pelos assessores ativos usando Codigo_Real (chave estável).
+
+    O código é preferível ao nome porque a grafia do nome na TB_DIVERSIFICADOR pode
+    divergir do assessor.json. Cai para o filtro por nome só se a base não trouxer o código.
+    """
+    antes = len(df)
+    if config.CUST_CODIGO not in df.columns:
+        logger.warning(f"  → Coluna '{config.CUST_CODIGO}' ausente na base — usando filtro por nome (menos confiável)")
+        df = df[df[config.CUST_ASSESSOR].apply(normalizar_nome).isin(_nomes_ativos_json())].copy()
+        logger.info(f"  → Assessores ativos (por nome): {antes} → {len(df)} registros")
+        return df
+
+    codigos = df[config.CUST_CODIGO].astype(str).str.strip().str.upper()
+    manter = codigos.isin(assessores_ativos)
+
+    # Alerta: linha descartada por código, mas cujo nome é de um assessor ativo.
+    # Sinal de código secundário não registrado em 'ids_alternativos' — custódia sumindo.
+    descartadas = df[~manter]
+    if len(descartadas):
+        nomes_ativos = _nomes_ativos_json()
+        suspeitas = descartadas[descartadas[config.CUST_ASSESSOR].apply(normalizar_nome).isin(nomes_ativos)]
+        for _, r in suspeitas.iterrows():
+            logger.warning(
+                f"  → ATENÇÃO: '{r[config.CUST_ASSESSOR]}' é assessor ativo, mas o código "
+                f"'{r[config.CUST_CODIGO]}' não está no assessor.json — "
+                f"R$ {r[config.CUST_VALOR]:,.2f} de custódia ficaram de fora. "
+                f"Registre o código em 'ids_alternativos'."
+            )
+
+    df = df[manter].copy()
+    logger.info(f"  → Assessores ativos (por código): {antes} → {len(df)} registros")
+    return df
+
+
 def carregar_assessores_ativos() -> set:
     """Lê assessor.json e retorna set de ids dos assessores ativos."""
     logger.info("Carregando assessores ativos do assessor.json...")
     with open(config.ARQUIVO_ASSESSORES, encoding='utf-8-sig') as f:
         data = json.load(f)
-    ativos = {a['id_assessor'].strip().upper() for a in data if a.get('status', '').strip().lower() == 'ativo'}
+    ativos = set()
+    for a in data:
+        if a.get('status', '').strip().lower() == 'ativo':
+            ativos |= _ids_do_assessor(a)
     logger.info(f"  → {len(ativos)} assessores ativos carregados do JSON")
     return ativos
 
 
 def carregar_assessores_ranking() -> tuple:
     """Retorna (ids_ranking, nomes_ranking): assessores ativos com incluir_ranking != false."""
-    import unicodedata
-    def _norm(nome):
-        return unicodedata.normalize('NFD', nome).encode('ascii', 'ignore').decode('utf-8').strip().upper()
-
     with open(config.ARQUIVO_ASSESSORES, encoding='utf-8-sig') as f:
         data = json.load(f)
     elegíveis = [a for a in data
                  if a.get('status', '').strip().lower() == 'ativo'
                  and a.get('incluir_ranking', True) is not False]
-    ids   = {a['id_assessor'].strip().upper() for a in elegíveis}
-    nomes = {_norm(a['nome_assessor']) for a in elegíveis}
-    logger.info(f"  → {len(ids)} assessores elegíveis para ranking")
+    ids   = set().union(*(_ids_do_assessor(a) for a in elegíveis)) if elegíveis else set()
+    nomes = {normalizar_nome(a['nome_assessor']) for a in elegíveis}
+    logger.info(f"  → {len(elegíveis)} assessores elegíveis para ranking")
     return ids, nomes
 
 
@@ -128,7 +186,7 @@ def _agregar_custodia(df: pd.DataFrame, nome_base: str = '') -> pd.DataFrame:
     df[config.CUST_VALOR] = pd.to_numeric(df[config.CUST_VALOR], errors='coerce').fillna(0)
 
     # Padroniza strings
-    for col in [config.CUST_ASSESSOR, config.CUST_TIME, config.CUST_STATUS]:
+    for col in [config.CUST_CODIGO, config.CUST_ASSESSOR, config.CUST_TIME, config.CUST_STATUS]:
         if col in df.columns:
             df[col] = df[col].astype(str).str.strip().str.upper()
 
@@ -137,9 +195,14 @@ def _agregar_custodia(df: pd.DataFrame, nome_base: str = '') -> pd.DataFrame:
     if config.CUST_STATUS in df.columns:
         agg[config.CUST_STATUS] = 'first'
 
+    # Mantém o código do assessor na chave — é ele que identifica o assessor a jusante
+    chaves = [config.CUST_ASSESSOR, config.CUST_TIME]
+    if config.CUST_CODIGO in df.columns:
+        chaves.insert(0, config.CUST_CODIGO)
+
     antes = len(df)
     df = (
-        df.groupby([config.CUST_ASSESSOR, config.CUST_TIME], as_index=False)
+        df.groupby(chaves, as_index=False)
         .agg(agg)
     )
     logger.info(f"  → [{nome_base}] Agregado de {antes} registros para {len(df)} assessores/núcleos")
@@ -329,37 +392,27 @@ def executar_etl_custodia_escritorio() -> pd.DataFrame:
 def executar_etl_custodia(assessores_ativos: set = None) -> pd.DataFrame:
     """ETL da TB_DIVERSIFICADOR: retorna custodia por assessor sem OPS."""
     if config.FONTE_DADOS == 'postgres':
-        import unicodedata
         logger.info("=== INICIANDO ETL CUSTODIA (fonte: PostgreSQL) ===")
         if assessores_ativos is None:
             assessores_ativos = carregar_assessores_ativos()
         df = _pull_tb_diversificador_postgres()
         df[config.CUST_VALOR] = pd.to_numeric(df[config.CUST_VALOR], errors='coerce').fillna(0)
-        for col in [config.CUST_ASSESSOR, config.CUST_TIME, config.CUST_STATUS]:
+        for col in [config.CUST_CODIGO, config.CUST_ASSESSOR, config.CUST_TIME, config.CUST_STATUS]:
             if col in df.columns:
                 df[col] = df[col].astype(str).str.strip().str.upper()
         permitidas = [e.upper() for e in config.EQUIPES_PERMITIDAS]
         antes = len(df)
         df = df[df[config.CUST_TIME].isin(permitidas)].copy()
         logger.info(f"  → Equipes permitidas: {antes} → {len(df)} registros")
-        if assessores_ativos and config.CUST_ASSESSOR in df.columns:
-            def _norm(nome):
-                return unicodedata.normalize('NFD', nome).encode('ascii', 'ignore').decode('utf-8').strip().upper()
-            with open(config.ARQUIVO_ASSESSORES, 'r', encoding='utf-8') as _f:
-                _data = json.load(_f)
-            nomes_ativos = {_norm(a['nome_assessor']) for a in _data if a.get('status', '').upper() == 'ATIVO'}
-            antes = len(df)
-            df['_norm'] = df[config.CUST_ASSESSOR].apply(_norm)
-            df = df[df['_norm'].isin(nomes_ativos)].copy()
-            df = df.drop(columns=['_norm'])
-            logger.info(f"  → Assessores ativos: {antes} → {len(df)} registros")
-        cols = [c for c in [config.CUST_ASSESSOR, config.CUST_TIME, config.CUST_VALOR, config.CUST_STATUS] if c in df.columns]
+        if assessores_ativos:
+            df = _filtrar_custodia_ativos(df, assessores_ativos)
+        cols = [c for c in [config.CUST_CODIGO, config.CUST_ASSESSOR, config.CUST_TIME,
+                            config.CUST_VALOR, config.CUST_STATUS] if c in df.columns]
         logger.info(f"=== ETL CUSTODIA POSTGRES CONCLUÍDO: {len(df)} registros ===")
         return df[cols]
 
     if config.FONTE_DADOS == 'd1':
         from cloudflare_d1 import pull_tb_diversificador
-        import unicodedata
         logger.info("=== INICIANDO ETL CUSTODIA (fonte: Cloudflare D1) ===")
         if assessores_ativos is None:
             assessores_ativos = carregar_assessores_ativos()
@@ -369,19 +422,8 @@ def executar_etl_custodia(assessores_ativos: set = None) -> pd.DataFrame:
         antes = len(df)
         df = df[df[config.CUST_TIME].isin(permitidas)].copy()
         logger.info(f"  → Equipes permitidas: {antes} → {len(df)} registros")
-        # Filtra assessores ativos por nome
-        if assessores_ativos and config.CUST_ASSESSOR in df.columns:
-            def _norm(nome):
-                return unicodedata.normalize('NFD', nome).encode('ascii', 'ignore').decode('utf-8').strip().upper()
-            with open(config.ARQUIVO_ASSESSORES, 'r', encoding='utf-8') as _f:
-                import json as _json
-                _data = _json.load(_f)
-            nomes_ativos = {_norm(a['nome_assessor']) for a in _data if a.get('status', '').upper() == 'ATIVO'}
-            antes = len(df)
-            df['_norm'] = df[config.CUST_ASSESSOR].apply(_norm)
-            df = df[df['_norm'].isin(nomes_ativos)].copy()
-            df = df.drop(columns=['_norm'])
-            logger.info(f"  → Assessores ativos: {antes} → {len(df)} registros")
+        if assessores_ativos:
+            df = _filtrar_custodia_ativos(df, assessores_ativos)
         logger.info(f"=== ETL CUSTODIA D1 CONCLUÍDO: {len(df)} registros ===")
         return df
 
@@ -405,26 +447,12 @@ def executar_etl_custodia(assessores_ativos: set = None) -> pd.DataFrame:
     df = df[df[config.CUST_TIME].isin(permitidas)].copy()
     logger.info(f"  → Equipes permitidas: {antes} → {len(df)} registros")
 
-    # Filtra assessores ativos via nome do assessor (comparação com JSON)
-    if assessores_ativos and config.CUST_ASSESSOR in df.columns:
-        import json
-        import unicodedata
-
-        def normalizar_nome(nome):
-            return unicodedata.normalize('NFD', nome).encode('ascii', 'ignore').decode('utf-8').strip().upper()
-
-        with open(config.ARQUIVO_ASSESSORES, 'r', encoding='utf-8') as f:
-            assessores_json = json.load(f)
-        nomes_ativos = {normalizar_nome(a['nome_assessor']) for a in assessores_json if a.get('status', '').upper() == 'ATIVO'}
-
-        antes = len(df)
-        df['_nome_normalizado'] = df[config.CUST_ASSESSOR].apply(normalizar_nome)
-        df = df[df['_nome_normalizado'].isin(nomes_ativos)].copy()
-        df = df.drop(columns=['_nome_normalizado'])
-        logger.info(f"  → Assessores ativos (por nome): {antes} → {len(df)} registros")
+    # Filtra assessores ativos pelo código do assessor
+    if assessores_ativos:
+        df = _filtrar_custodia_ativos(df, assessores_ativos)
 
     # Seleciona colunas relevantes
-    cols = [c for c in [config.CUST_ASSESSOR, config.CUST_TIME,
+    cols = [c for c in [config.CUST_CODIGO, config.CUST_ASSESSOR, config.CUST_TIME,
                         config.CUST_VALOR, config.CUST_STATUS] if c in df.columns]
     df = df[cols]
 

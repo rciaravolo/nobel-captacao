@@ -88,6 +88,7 @@ def main():
 
         # 6️⃣  ETL e rankings de custodia
         df_cust             = executar_etl_custodia(assessores_ativos)
+        df_cust.attrs['codigos_ranking'] = ids_ranking
         df_cust.attrs['nomes_ranking'] = nomes_ranking
         df_cust_escritorio  = executar_etl_custodia_escritorio()
         resumo_cust         = calcular_resumo_custodia(df_cust, df_cust_escritorio)
