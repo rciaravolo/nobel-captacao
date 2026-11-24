@@ -2,92 +2,100 @@
   {
     "id_assessor": "A26112",
     "nome_assessor": "Argos Urbano",
-    "equipe": "BRAVO",
+    "equipe": "ANYWHERE",
     "status": "Ativo",
     "mail_assessor": "argos.sasso@nobelcapital.com.br"
   },
   {
     "id_assessor": "A43705",
     "nome_assessor": "Cristiane Mellote",
-    "equipe": "BRAVO",
+    "equipe": "ANYWHERE",
     "status": "Ativo",
     "mail_assessor": "cristiane.mellote@nobelcapital.com.br"
   },
   {
     "id_assessor": "A53211",
     "nome_assessor": "Diana Frajtag",
-    "equipe": "BRAVO",
+    "equipe": "ANYWHERE",
     "status": "Ativo",
     "mail_assessor": "diana.frajtag@nobelcapital.com.br"
   },
   {
     "id_assessor": "A27823",
     "nome_assessor": "Diogo Reinoso",
-    "equipe": "BRAVO",
+    "equipe": "ANYWHERE",
     "status": "Ativo",
     "mail_assessor": "diogo.reinoso@nobelcapital.com.br"
   },
   {
     "id_assessor": "A56706",
     "nome_assessor": "Evandro Delduque",
-    "equipe": "BRAVO",
+    "equipe": "ANYWHERE",
     "status": "Ativo",
     "mail_assessor": "evandro.delduque@nobelcapital.com.br"
   },
   {
-    "id_assessor": "A20949",
-    "nome_assessor": "Fabio Castelucci",
-    "equipe": "BRAVO",
-    "status": "Ativo",
-    "mail_assessor": ""
-  },
-  {
     "id_assessor": "A32005",
     "nome_assessor": "Fabio Ribeiro",
-    "equipe": "BRAVO",
+    "equipe": "ANYWHERE",
     "status": "Ativo",
     "mail_assessor": "fabio.ribeiro@nobelcapital.com.br"
   },
   {
     "id_assessor": "A24356",
     "nome_assessor": "Giordano Molinari",
-    "equipe": "BRAVO",
+    "equipe": "ANYWHERE",
     "status": "Ativo",
     "mail_assessor": "giordano.molinari@nobelcapital.com.br"
   },
   {
     "id_assessor": "A24984",
     "nome_assessor": "Leandro Barbancho",
-    "equipe": "BRAVO",
+    "equipe": "ANYWHERE",
     "status": "Ativo",
     "mail_assessor": "leandro.barbancho@nobelcapital.com.br"
   },
   {
     "id_assessor": "A73259",
     "nome_assessor": "Leandro de Luna",
-    "equipe": "BRAVO",
+    "equipe": "ANYWHERE",
     "status": "Ativo",
     "mail_assessor": "leandro.deluna@nobelcapital.com.br"
   },
   {
+    "id_assessor": "A73214",
+    "nome_assessor": "Marcelo Almeida",
+    "equipe": "ANYWHERE",
+    "status": "Ativo",
+    "mail_assessor": "marcelo.almeida@nobelcapital.com.br"
+  },
+  {
     "id_assessor": "A26918",
     "nome_assessor": "Nina Lima",
-    "equipe": "BRAVO",
+    "equipe": "ANYWHERE",
     "status": "Ativo",
     "mail_assessor": "nina.lima@nobelcapital.com.br"
   },
   {
     "id_assessor": "A69243",
     "nome_assessor": "Rafael Bonfim",
-    "equipe": "BRAVO",
+    "equipe": "ANYWHERE",
     "status": "Ativo",
     "mail_assessor": "",
     "incluir_ranking": false
   },
   {
+    "id_assessor": "Private25",
+    "nome_assessor": "Rodrigo de Sé",
+    "equipe": "ANYWHERE",
+    "status": "Ativo",
+    "mail_assessor": "rodrigo.se@nobelcapital.com.br",
+    "ids_alternativos": ["A21651"]
+  },
+  {
     "id_assessor": "A74348",
     "nome_assessor": "Simone Augusto",
-    "equipe": "BRAVO",
+    "equipe": "ANYWHERE",
     "status": "Ativo",
     "mail_assessor": "simone.augusto@nobelcapital.com.br"
   },
@@ -125,6 +133,13 @@
     "equipe": "PRIVATE",
     "status": "Ativo",
     "mail_assessor": "fabio.galdino@nobelcapital.com.br"
+  },
+  {
+    "id_assessor": "A67205",
+    "nome_assessor": "Johan Contreras",
+    "equipe": "PRIVATE",
+    "status": "Ativo",
+    "mail_assessor": "johan.contreras@nobelcapital.com.br"
   },
   {
     "id_assessor": "A72441",
@@ -173,13 +188,6 @@
     "incluir_ranking": false
   },
   {
-    "id_assessor": "A73214",
-    "nome_assessor": "Marcelo Almeida",
-    "equipe": "PRIVATE",
-    "status": "Ativo",
-    "mail_assessor": "marcelo.almeida@nobelcapital.com.br"
-  },
-  {
     "id_assessor": "A65646",
     "nome_assessor": "Marcelo Gaspar",
     "equipe": "PRIVATE",
@@ -194,18 +202,18 @@
     "mail_assessor": "roberta.figueira@nobelcapital.com.br"
   },
   {
-    "id_assessor": "Private25",
-    "nome_assessor": "Rodrigo de Sé",
-    "equipe": "PRIVATE",
-    "status": "Ativo",
-    "mail_assessor": "rodrigo.se@nobelcapital.com.br"
-  },
-  {
     "id_assessor": "A69286",
     "nome_assessor": "Vitor Baqueiro",
     "equipe": "PRIVATE",
     "status": "Ativo",
     "mail_assessor": "vitor.baqueiro@nobelcapital.com.br"
+  },
+  {
+    "id_assessor": "A20949",
+    "nome_assessor": "Fabio Castelucci",
+    "equipe": "SMART",
+    "status": "Ativo",
+    "mail_assessor": ""
   },
   {
     "id_assessor": "A95945",

@@ -71,6 +71,14 @@ ARQUIVO_ASSESSORES = r'...\relatorio-captacao\assessor.json'
 
 > O `assessor.json` fica **dentro** do repositório (pasta `relatorio-captacao`), não na raiz de CAPTACAO.
 
+## Modo teste
+
+Quando o usuário pedir "modo teste" / "disparar em teste" / similar, sempre redirecionar o e-mail para **`rafael.brandao@nobelcapital.com.br`** (nunca para o `timenobel@` e nunca para `bi@`):
+
+```powershell
+$env:EMAIL_DESTINATARIO = "rafael.brandao@nobelcapital.com.br"; python main.py
+```
+
 ## Modos de execução
 
 ### Fonte de dados (`FONTE_DADOS`)
@@ -126,7 +134,9 @@ push_para_cloudflare.bat # Envia dados locais → Cloudflare D1
 
 ## Equipes ativas
 
-`PRIVATE`, `BRAVO`, `SMART`
+`PRIVATE`, `ANYWHERE`, `SMART`
+
+> ANYWHERE substituiu BRAVO (a base passou a trazer `ANYWHERE` no `Núcleo`). Em 2026-10-15 o relatório saiu sem a equipe porque o filtro ainda listava `BRAVO`.
 
 > RIO PRETO foi dissolvida em 2026-07. Cristiane Mellote e Evandro Delduque migraram para BRAVO; Marcelo Almeida para PRIVATE; Elise Okayama e Viviane Fabbri saíram.
 

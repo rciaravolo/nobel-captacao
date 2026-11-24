@@ -40,6 +40,7 @@ COLUNA_DATA     = 'Data'
 # ── COLUNAS CUSTÓDIA (TB_DIVERSIFICADOR) ──────────────────────
 # A TB_DIVERSIFICADOR vem uma linha por produto/cliente.
 # O ETL agrega a coluna NET por assessor/núcleo para formar o total de custódia.
+CUST_CODIGO     = 'Codigo_Real'       # chave estável do assessor (na TB_CAP a coluna é 'Codigo Real')
 CUST_ASSESSOR   = 'Assessor'
 CUST_TIME       = 'Núcleo'
 CUST_VALOR      = 'NET'
@@ -55,7 +56,7 @@ ARQUIVO_ASSESSORES = _os.environ.get(
 # ── REGRAS DE NEGÓCIO ─────────────────────────────────────────
 EQUIPES_EXCLUIDAS  = ['OPS']          # legado, mantido por compatibilidade
 EQUIPES_PERMITIDAS = [                # unicas equipes exibidas no relatorio
-    'PRIVATE', 'BRAVO', 'SMART',
+    'PRIVATE', 'ANYWHERE', 'SMART',
 ]
 CONSIDERAR_ZERADOS = False
 
